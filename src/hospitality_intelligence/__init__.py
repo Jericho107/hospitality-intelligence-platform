@@ -1,0 +1,1 @@
+"""Hospitality Intelligence Platform package."""
