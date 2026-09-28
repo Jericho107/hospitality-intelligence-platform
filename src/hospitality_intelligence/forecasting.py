@@ -143,8 +143,8 @@ def temporal_split(
     minimum_training_days = int(protocol["minimum_training_days"])
 
     max_date = frame["date"].max()
-    test_start = max_date - pd.Timedelta(days=test_days - 1)
-    validation_start = test_start - pd.Timedelta(days=validation_days)
+    test_start = max_date - pd.Timedelta(test_days - 1, unit="D")
+    validation_start = test_start - pd.Timedelta(validation_days, unit="D")
 
     train = frame[frame["date"] < validation_start].copy()
     validation = frame[
