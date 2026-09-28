@@ -24,7 +24,7 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ---
 
-## Current implementation — Phase 6 (baseline-first forecasting)
+## Current implementation — Phase 7 (management action & value proof)
 
 The platform now enforces six fail-closed evidence boundaries from synthetic source contracts through the governed BI contract layer.
 
@@ -55,7 +55,11 @@ The platform now enforces six fail-closed evidence boundaries from synthetic sou
 - chronological train / validation / untouched final-test workflow;
 - leakage guardrails requiring all target-derived features to be at least seven days old;
 - multi-seed acceptance testing plus a deliberately weak zero-demand control;
-- CI reverse tests and acceptance gates at seven levels:
+- auditable 20-day management opportunity model for purchase price, waste and overtime premium;
+- explicit conservative/base/stretch recovery assumptions at 25% / 50% / 75%;
+- action owner, governed follow-up metric and 30-day review window for each value driver;
+- healthy-control validation proving the value model reacts materially to controlled leakage;
+- CI reverse tests and acceptance gates at eight levels:
   1. source contract corruption;
   2. raw PostgreSQL target mutation;
   3. analytical fact mutation;
@@ -63,6 +67,7 @@ The platform now enforces six fail-closed evidence boundaries from synthetic sou
   5. diagnostic truth / false-positive control;
   6. BI semantic/report-contract corruption;
   7. forecast candidate selection / rejection;
+  8. management opportunity responsiveness / healthy control;
 - deterministic recovery from each controlled failure.
 
 ### Not yet implemented
@@ -72,7 +77,7 @@ The platform now enforces six fail-closed evidence boundaries from synthetic sou
 - pixel-level decision UX and accessibility review in a rendered report;
 - production-style diagnostic alert thresholds or causal attribution;
 - production forecast validation on real booking-pace and exogenous demand data;
-- quantified management-action impact.
+- observed post-action intervention impact and causal attribution.
 
 Those items receive **zero scoring credit** until repository evidence exists.
 ---
@@ -168,7 +173,7 @@ PMS        POS        PROCUREMENT        WORKFORCE        BUDGET
                   MEASURED BUSINESS IMPACT
 ```
 
-The source-contract, PostgreSQL, KPI-governance, synthetic diagnostic-validation, BI semantic-contract and synthetic baseline-first forecasting layers are implemented. The rendered Power BI report and business-impact layers remain target architecture until proven otherwise.
+The source-contract, PostgreSQL, KPI-governance, synthetic diagnostic-validation, BI semantic-contract, synthetic baseline-first forecasting and modeled management-opportunity layers are implemented. The rendered Power BI runtime layer and realized intervention-impact layer remain target architecture until proven otherwise.
 
 ---
 
@@ -217,6 +222,30 @@ These are synthetic benchmark results, not production hotel accuracy claims. See
 
 ---
 
+## Management opportunity evidence
+
+The value layer converts three controlled operating pressures into explicit, reviewable management actions without claiming realized ROI.
+
+For the synthetic leisure resort over the final 20-day leakage window, observed modeled exposure was:
+
+- purchase-price pressure: **3,429.78**;
+- excess waste: **1,584.99**;
+- excess overtime premium: **1,798.33**.
+
+Under the documented recovery assumptions, modeled recoverable opportunity is:
+
+- conservative 25%: **1,703.28**;
+- base 50%: **3,406.55**;
+- stretch 75%: **5,109.83**.
+
+The matched healthy control produces a base opportunity of **137.69**, so the leakage scenario is approximately **24.7×** higher under identical logic.
+
+These are synthetic opportunity estimates, not realized savings or client ROI. Real impact remains unproven until an intervention is implemented and measured.
+
+See [docs/management_action_value.md](docs/management_action_value.md) and [docs/management_value_results.md](docs/management_value_results.md).
+
+---
+
 ## Technical implementation
 
 | Layer | Implementation | Status |
@@ -236,6 +265,8 @@ These are synthetic benchmark results, not production hotel accuracy claims. See
 | BI runtime / decision UX | Power BI Desktop render/open/save + visual QA | not yet implemented |
 | Analytics | diagnostic benchmark implemented; broader statistical analysis pending | **partial** |
 | Forecasting | seasonal-naive baseline + HistGradientBoosting + chronological evaluation | **implemented on synthetic benchmark** |
+| Management value model | explicit exposures + 25/50/75% recovery scenarios | **implemented on synthetic benchmark** |
+| Realized impact attribution | observed intervention + post-action measurement | not yet implemented |
 | Software Quality | pytest + Ruff | **implemented** |
 | Delivery | Docker Compose + GitHub Actions | **implemented through Phase 5 CI** |
 | Documentation | architecture, model, contracts, assumptions, proof matrix | **implemented and evolving** |
@@ -324,7 +355,7 @@ clean TMDL + PBIR/report contract
 
 Warehouse validation does not rely only on global totals. KPI validation independently recalculates implemented metrics from facts and rejects drift in the materialized decision layer. Diagnostic validation includes a negative control, and BI validation fails closed when a deferred measure is introduced into the report contract.
 
-Future phases must still add runtime Power BI visual validation and management-action/value proof.
+Future phases must still add runtime Power BI visual validation and observed intervention-impact proof.
 ---
 
 ## Local validation
@@ -401,7 +432,7 @@ Empty folders are not created for presentation. A directory appears only when it
 
 The repository is **not OFFICIAL**.
 
-Current phase: **Phase 6 — baseline-first forecasting validated on synthetic data; Desktop BI runtime and value proof still pending**.
+Current phase: **Phase 7 — modeled management opportunity validated on synthetic data; Desktop BI runtime and realized intervention impact still pending**.
 
 Officialisation requires:
 
