@@ -82,7 +82,7 @@ class POSCheckRecord(StrictModel):
     net_revenue: float = Field(ge=0)
 
     @model_validator(mode="after")
-    def validate_revenue_identity(self) -> "POSCheckRecord":
+    def validate_revenue_identity(self) -> POSCheckRecord:
         if abs((self.gross_revenue - self.discount_amount) - self.net_revenue) > MONEY_TOLERANCE:
             raise ValueError("net_revenue must equal gross_revenue - discount_amount")
         return self
@@ -107,7 +107,7 @@ class PurchaseRecord(StrictModel):
     purchase_cost: float = Field(ge=0)
 
     @model_validator(mode="after")
-    def validate_purchase_identity(self) -> "PurchaseRecord":
+    def validate_purchase_identity(self) -> PurchaseRecord:
         if abs((self.quantity * self.unit_cost) - self.purchase_cost) > MONEY_TOLERANCE:
             raise ValueError("purchase_cost must equal quantity * unit_cost")
         return self
@@ -126,7 +126,7 @@ class InventoryRecord(StrictModel):
     inventory_value: float = Field(ge=0)
 
     @model_validator(mode="after")
-    def validate_inventory_identities(self) -> "InventoryRecord":
+    def validate_inventory_identities(self) -> InventoryRecord:
         expected_closing = self.opening_qty + self.receipts_qty - self.usage_qty - self.waste_qty
         if abs(expected_closing - self.closing_qty) > QUANTITY_TOLERANCE:
             raise ValueError("inventory roll-forward does not balance")
@@ -145,7 +145,7 @@ class LabourRecord(StrictModel):
     labour_cost: float = Field(ge=0)
 
     @model_validator(mode="after")
-    def validate_overtime(self) -> "LabourRecord":
+    def validate_overtime(self) -> LabourRecord:
         if self.overtime_hours - self.actual_hours > QUANTITY_TOLERANCE:
             raise ValueError("overtime_hours cannot exceed actual_hours")
         return self
@@ -159,7 +159,7 @@ class BudgetRecord(StrictModel):
     budget_cost: float = Field(ge=0)
 
     @model_validator(mode="after")
-    def validate_month_grain(self) -> "BudgetRecord":
+    def validate_month_grain(self) -> BudgetRecord:
         if self.month.day != 1:
             raise ValueError("budget month must be represented by the first calendar day")
         return self
