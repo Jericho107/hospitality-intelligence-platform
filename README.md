@@ -24,7 +24,7 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ---
 
-## Current implementation — Phase 3
+## Current implementation — Phase 4
 
 The platform now proves two separate data-trust boundaries before KPI or dashboard logic receives credit.
 
@@ -43,17 +43,21 @@ The platform now proves two separate data-trust boundaries before KPI or dashboa
 - machine-readable KPI contracts with explicit grain, formula, owner, exclusions, reconciliation and limitations;
 - materialized KPI marts for Rooms, F&B, Purchasing, Inventory and Labour;
 - independent KPI reconciliation back to analytical facts;
-- CI reverse tests at four levels:
+- paired healthy-versus-leakage diagnostic benchmark;
+- ranked detection of injected beverage purchase-cost, beverage-waste and F&B overtime pressure;
+- negative control proving the diagnostic engine does not report adverse drivers on healthy-versus-healthy data;
+- CI reverse tests at five levels:
   1. source contract corruption;
   2. raw PostgreSQL target mutation;
   3. analytical fact mutation;
   4. materialized KPI corruption;
+  5. diagnostic truth / false-positive control;
 - deterministic recovery from each controlled failure.
 
 ### Not yet implemented
 
 - Power BI / DAX artifacts;
-- diagnostic ranking of margin drivers;
+- production-style diagnostic alert thresholds or causal attribution;
 - forecast models;
 - quantified management-action impact.
 
@@ -151,7 +155,7 @@ PMS        POS        PROCUREMENT        WORKFORCE        BUDGET
                   MEASURED BUSINESS IMPACT
 ```
 
-The source-contract, validation and PostgreSQL modelling layers are implemented. KPI, diagnostic, BI and business-impact layers remain target architecture until proven otherwise.
+The source-contract, PostgreSQL, KPI-governance and synthetic diagnostic-validation layers are implemented. BI, forecasting and business-impact layers remain target architecture until proven otherwise.
 
 ---
 
@@ -206,8 +210,9 @@ Every KPI requires a documented definition, grain, source, formula and limitatio
 | Raw → analytics validation | counts + quantities + financial + lineage controls | **implemented** |
 | KPI governance | machine-readable contracts | **implemented** |
 | KPI materialisation | SQL marts + independent reconciliation | **implemented** |
+| Diagnostic validation | paired scenario benchmark + negative control | **implemented** |
 | BI | Power BI / DAX | not yet implemented |
-| Analytics | Python / statistical diagnostics | not yet implemented |
+| Analytics | diagnostic benchmark implemented; broader statistical analysis pending | **partial** |
 | Forecasting | baseline-first time-series / ML evaluation | not yet implemented |
 | Software Quality | pytest + Ruff | **implemented** |
 | Delivery | Docker Compose + GitHub Actions | **implemented through Phase 2** |
@@ -351,7 +356,7 @@ Empty folders are not created for presentation. A directory appears only when it
 
 The repository is **not OFFICIAL**.
 
-Current phase: **Phase 3 — governed and reverse-tested KPI layer**.
+Current phase: **Phase 4 — diagnostic benchmark validated against controlled synthetic truth**.
 
 Officialisation requires:
 
