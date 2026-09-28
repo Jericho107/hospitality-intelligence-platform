@@ -55,6 +55,9 @@ diagnostic-benchmark:
 		--require-adverse beverage_purchase_cost_pressure beverage_waste_pressure fnb_overtime_pressure
 
 bi-validate:
+	python -m hospitality_intelligence.validate_bi_contract
+
+bi-validate:
 	python -m hospitality_intelligence.bi_contracts
 
 pipeline: generate validate up ingest reconcile transform warehouse-validate metric-contracts metrics metric-validate
