@@ -216,3 +216,30 @@ jobs:
 
       - name: Revalidate clean BI contract
         run: python -m hospitality_intelligence.bi_contracts
+
+      - name: Generate dedicated forecasting horizon
+        run: |
+          python -m hospitality_intelligence.generate_synthetic_data \
+            --output-dir data/forecast \
+            --days 420 \
+            --seed 42 \
+            --anchor 2025-07-01T00:00:00+00:00 \
+            --scenario healthy
+
+      - name: Validate forecasting source contracts
+        run: python -m hospitality_intelligence.validate_sources --data-dir data/forecast
+
+      - name: Require predictive candidate to beat seasonal baseline
+        run: |
+          python -m hospitality_intelligence.forecasting \
+            --data-dir data/forecast \
+            --candidate hist_gradient_boosting \
+            --output /tmp/forecast_metrics.json \
+            --expect accepted
+
+      - name: Prove weak forecast candidate is rejected
+        run: |
+          python -m hospitality_intelligence.forecasting \
+            --data-dir data/forecast \
+            --candidate zero \
+            --expect rejected
