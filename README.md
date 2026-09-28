@@ -24,7 +24,7 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ---
 
-## Current implementation — Phase 5 (BI semantic layer)
+## Current implementation — Phase 6 (baseline-first forecasting)
 
 The platform now enforces six fail-closed evidence boundaries from synthetic source contracts through the governed BI contract layer.
 
@@ -50,13 +50,19 @@ The platform now enforces six fail-closed evidence boundaries from synthetic sou
 - governed DAX measure layer mapped back to implemented KPI contracts;
 - PBIR report/page scaffold for four management decision surfaces;
 - machine-readable report contract preventing unknown or deferred measures from entering BI;
-- CI reverse tests at six levels:
+- governed seven-day-ahead room-demand forecasting protocol;
+- seasonal-naive 7-day baseline versus HistGradientBoosting candidate;
+- chronological train / validation / untouched final-test workflow;
+- leakage guardrails requiring all target-derived features to be at least seven days old;
+- multi-seed acceptance testing plus a deliberately weak zero-demand control;
+- CI reverse tests and acceptance gates at seven levels:
   1. source contract corruption;
   2. raw PostgreSQL target mutation;
   3. analytical fact mutation;
   4. materialized KPI corruption;
   5. diagnostic truth / false-positive control;
   6. BI semantic/report-contract corruption;
+  7. forecast candidate selection / rejection;
 - deterministic recovery from each controlled failure.
 
 ### Not yet implemented
@@ -65,7 +71,7 @@ The platform now enforces six fail-closed evidence boundaries from synthetic sou
 - Power BI Desktop open/save runtime validation;
 - pixel-level decision UX and accessibility review in a rendered report;
 - production-style diagnostic alert thresholds or causal attribution;
-- forecast models;
+- production forecast validation on real booking-pace and exogenous demand data;
 - quantified management-action impact.
 
 Those items receive **zero scoring credit** until repository evidence exists.
@@ -162,7 +168,7 @@ PMS        POS        PROCUREMENT        WORKFORCE        BUDGET
                   MEASURED BUSINESS IMPACT
 ```
 
-The source-contract, PostgreSQL, KPI-governance, synthetic diagnostic-validation and BI semantic-contract layers are implemented. The rendered Power BI report, forecasting and business-impact layers remain target architecture until proven otherwise.
+The source-contract, PostgreSQL, KPI-governance, synthetic diagnostic-validation, BI semantic-contract and synthetic baseline-first forecasting layers are implemented. The rendered Power BI report and business-impact layers remain target architecture until proven otherwise.
 
 ---
 
@@ -201,6 +207,16 @@ Still deliberately excluded from BI until their upstream contracts are implement
 
 ---
 
+## Forecasting evidence
+
+The fixed room-demand protocol compares a seven-day seasonal-naive baseline with a HistGradientBoosting candidate at property-day grain.
+
+On the primary synthetic seed, final-test WAPE moved from **6.00% to 3.76%**, a **37.29% relative improvement**, while MAE also decreased. Two additional seeds produced **36.91%** and **40.08%** final-test WAPE improvements, with no property-level WAPE regression observed in the guardrail. A zero-demand predictor was rejected before final-test evaluation.
+
+These are synthetic benchmark results, not production hotel accuracy claims. See [docs/forecasting_results.md](docs/forecasting_results.md) and [docs/forecasting_validation.md](docs/forecasting_validation.md).
+
+---
+
 ## Technical implementation
 
 | Layer | Implementation | Status |
@@ -219,7 +235,7 @@ Still deliberately excluded from BI until their upstream contracts are implement
 | BI report contract | PBIR page scaffold + machine-readable visual contract | **implemented** |
 | BI runtime / decision UX | Power BI Desktop render/open/save + visual QA | not yet implemented |
 | Analytics | diagnostic benchmark implemented; broader statistical analysis pending | **partial** |
-| Forecasting | baseline-first time-series / ML evaluation | not yet implemented |
+| Forecasting | seasonal-naive baseline + HistGradientBoosting + chronological evaluation | **implemented on synthetic benchmark** |
 | Software Quality | pytest + Ruff | **implemented** |
 | Delivery | Docker Compose + GitHub Actions | **implemented through Phase 5 CI** |
 | Documentation | architecture, model, contracts, assumptions, proof matrix | **implemented and evolving** |
@@ -308,7 +324,7 @@ clean TMDL + PBIR/report contract
 
 Warehouse validation does not rely only on global totals. KPI validation independently recalculates implemented metrics from facts and rejects drift in the materialized decision layer. Diagnostic validation includes a negative control, and BI validation fails closed when a deferred measure is introduced into the report contract.
 
-Future phases must still add runtime Power BI visual validation, management-action/value proof and forecasting.
+Future phases must still add runtime Power BI visual validation and management-action/value proof.
 ---
 
 ## Local validation
@@ -385,7 +401,7 @@ Empty folders are not created for presentation. A directory appears only when it
 
 The repository is **not OFFICIAL**.
 
-Current phase: **Phase 5 — Power BI semantic/report contracts implemented; Desktop runtime validation still pending**.
+Current phase: **Phase 6 — baseline-first forecasting validated on synthetic data; Desktop BI runtime and value proof still pending**.
 
 Officialisation requires:
 

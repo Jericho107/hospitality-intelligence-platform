@@ -1,0 +1,40 @@
+target:
+  name: rooms_sold
+  grain: property_day
+  source: pms_bookings_daily.csv
+
+protocol:
+  horizon_days: 7
+  validation_days: 56
+  test_days: 84
+  minimum_training_days: 180
+  target_lags: [7, 14, 21, 28, 35, 42, 56]
+  rolling_window_days: 28
+  random_state: 42
+  robustness_seeds: [7, 42, 107]
+
+baseline:
+  id: seasonal_naive_7d
+  prediction: lag_7
+
+candidate:
+  id: hist_gradient_boosting
+  max_iter: 250
+  learning_rate: 0.05
+  max_leaf_nodes: 15
+  l2_regularization: 1.0
+
+metrics:
+  - WAPE
+  - MAE
+
+acceptance:
+  minimum_validation_wape_improvement: 0.02
+  minimum_test_wape_improvement: 0.00
+  maximum_property_wape_regression: 0.10
+
+limitations:
+  - Evaluation is rolling seven-day-ahead, not one static 84-day forecast.
+  - Synthetic forecast performance is not production performance.
+  - Exogenous events, booking pace, cancellations, price changes and external demand signals are absent.
+  - A model is rejected when it does not beat the governed baseline.

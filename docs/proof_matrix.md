@@ -21,7 +21,7 @@ This matrix distinguishes implemented evidence from planned architecture.
 | PBIR page/report contract is internally coherent | PBIR scaffold + machine-readable report contract | unknown/forbidden measure reference fails closed | implemented |
 | Power BI Desktop report is runtime-validated and decision-ready | rendered visual containers + Desktop open/save evidence | runtime + metric/visual QA | not yet implemented |
 | Diagnostic ranking identifies injected drivers | paired scenario benchmark + ranked driver output | healthy vs leakage must detect purchase, waste and overtime pressure; healthy vs healthy must detect none | implemented |
-| Forecasting improves on a baseline | modelling artifacts | naive baseline comparison | not yet implemented |
+| Forecasting improves on a governed baseline | fixed protocol + measured CI results | candidate must beat seasonal naive, weak zero predictor must fail, acceptance must hold across seeds | implemented |
 | Business actions have quantified impact | action model | assumptions + sensitivity | not yet implemented |
 
 No score credit is given for rows marked `not yet implemented`.
