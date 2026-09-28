@@ -57,7 +57,7 @@ def load_contract(path: Path = CONTRACT_PATH) -> dict[str, object]:
     base = float(recovery["base"])
     stretch = float(recovery["stretch"])
     if not 0 <= conservative <= base <= stretch <= 1:
-        raise ValueError("Recovery scenarios must satisfy 0 <= conservative <= base <= stretch <= 1")
+        raise ValueError(\n            "Recovery scenarios must satisfy 0 <= conservative <= base <= stretch <= 1"\n        )
     if int(scope["analysis_window_days"]) <= 0 or int(scope["baseline_window_days"]) <= 0:
         raise ValueError("Value-model windows must be positive")
     premium = float(labour["overtime_premium_rate"])
