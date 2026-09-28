@@ -243,3 +243,21 @@ jobs:
             --data-dir data/forecast \
             --candidate zero \
             --expect rejected
+
+      - name: Prove predictive acceptance is robust across seeds
+        shell: bash
+        run: |
+          for seed in 7 107; do
+            python -m hospitality_intelligence.generate_synthetic_data \
+              --output-dir "data/forecast-${seed}" \
+              --days 420 \
+              --seed "${seed}" \
+              --anchor 2025-07-01T00:00:00+00:00 \
+              --scenario healthy
+            python -m hospitality_intelligence.validate_sources \
+              --data-dir "data/forecast-${seed}"
+            python -m hospitality_intelligence.forecasting \
+              --data-dir "data/forecast-${seed}" \
+              --candidate hist_gradient_boosting \
+              --expect accepted
+          done
