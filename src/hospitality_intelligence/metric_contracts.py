@@ -39,7 +39,7 @@ class MetricContract(BaseModel):
     status: Literal["implemented", "deferred"]
 
     @model_validator(mode="after")
-    def validate_status_boundary(self) -> "MetricContract":
+    def validate_status_boundary(self) -> MetricContract:
         if self.status == "implemented":
             if not self.sources:
                 raise ValueError(f"{self.id}: implemented metric must declare sources")
