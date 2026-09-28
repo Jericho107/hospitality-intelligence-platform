@@ -41,10 +41,29 @@ class ValueModel:
     stretch_total: float
 
 
-def load_contract() -> dict[str, object]:
-    payload = yaml.safe_load(CONTRACT_PATH.read_text(encoding="utf-8"))
+def load_contract(path: Path = CONTRACT_PATH) -> dict[str, object]:
+    payload = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("Action-value contract root must be a mapping")
+
+    scope = payload.get("scope")
+    recovery = payload.get("recovery_scenarios")
+    labour = payload.get("labour")
+    actions = payload.get("actions")
+    if not all(isinstance(item, dict) for item in [scope, recovery, labour, actions]):
+        raise ValueError("Malformed action-value contract")
+
+    conservative = float(recovery["conservative"])
+    base = float(recovery["base"])
+    stretch = float(recovery["stretch"])
+    if not 0 <= conservative <= base <= stretch <= 1:
+        raise ValueError("Recovery scenarios must satisfy 0 <= conservative <= base <= stretch <= 1")
+    if int(scope["analysis_window_days"]) <= 0 or int(scope["baseline_window_days"]) <= 0:
+        raise ValueError("Value-model windows must be positive")
+    premium = float(labour["overtime_premium_rate"])
+    if not 0 <= premium <= 1:
+        raise ValueError("Overtime premium rate must be between 0 and 1")
+
     return payload
 
 
@@ -101,10 +120,13 @@ def _opportunity(
     )
 
 
-def evaluate(data_dir: Path) -> ValueModel:
+def evaluate(
+    data_dir: Path,
+    contract_path: Path = CONTRACT_PATH,
+) -> ValueModel:
     """Estimate recoverable opportunity without claiming realized savings."""
 
-    contract = load_contract()
+    contract = load_contract(contract_path)
     scope = contract["scope"]
     recovery = contract["recovery_scenarios"]
     labour_contract = contract["labour"]
