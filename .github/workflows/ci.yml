@@ -175,3 +175,21 @@ jobs:
         run: |
           python -m hospitality_intelligence.build_metrics
           python -m hospitality_intelligence.validate_metrics
+
+      - name: Generate matched diagnostic benchmark scenarios
+        run: |
+          python -m hospitality_intelligence.generate_synthetic_data             --output-dir data/benchmark/healthy             --days 60             --seed 42             --anchor 2026-09-01T00:00:00+00:00             --scenario healthy
+          python -m hospitality_intelligence.generate_synthetic_data             --output-dir data/benchmark/leakage             --days 60             --seed 42             --anchor 2026-09-01T00:00:00+00:00             --scenario margin_leakage
+
+      - name: Validate both benchmark source systems
+        run: |
+          python -m hospitality_intelligence.validate_sources --data-dir data/benchmark/healthy
+          python -m hospitality_intelligence.validate_sources --data-dir data/benchmark/leakage
+
+      - name: Prove diagnostics recover injected adverse drivers
+        run: |
+          python -m hospitality_intelligence.diagnostics             --baseline-dir data/benchmark/healthy             --candidate-dir data/benchmark/leakage             --require-adverse               beverage_purchase_cost_pressure               beverage_waste_pressure               fnb_overtime_pressure
+
+      - name: Prove diagnostics do not invent adverse drivers
+        run: |
+          python -m hospitality_intelligence.diagnostics             --baseline-dir data/benchmark/healthy             --candidate-dir data/benchmark/healthy             --require-none
