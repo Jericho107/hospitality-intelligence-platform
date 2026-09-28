@@ -17,7 +17,9 @@ This matrix distinguishes implemented evidence from planned architecture.
 | Raw-to-analytics transformation detects drift | warehouse validator | CI mutates labour fact cost and requires validation failure | implemented |
 | KPI definitions are governed | machine-readable contract + Pydantic validation | implemented metrics require governed sources and limitations | implemented |
 | KPI marts reconcile to analytical facts | independent metric validator | CI mutates materialized ADR and requires validation failure | implemented |
-| Power BI layer is decision-ready | dashboard artifacts + KPI evidence | metric/visual QA | not yet implemented |
+| Power BI semantic measures match governed KPI contracts | TMDL + metric-to-DAX mapping | CI injects a forbidden deferred measure and requires failure | implemented |
+| PBIR page/report contract is internally coherent | PBIR scaffold + machine-readable report contract | unknown/forbidden measure reference fails closed | implemented |
+| Power BI Desktop report is runtime-validated and decision-ready | rendered visual containers + Desktop open/save evidence | runtime + metric/visual QA | not yet implemented |
 | Diagnostic ranking identifies injected drivers | paired scenario benchmark + ranked driver output | healthy vs leakage must detect purchase, waste and overtime pressure; healthy vs healthy must detect none | implemented |
 | Forecasting improves on a baseline | modelling artifacts | naive baseline comparison | not yet implemented |
 | Business actions have quantified impact | action model | assumptions + sensitivity | not yet implemented |
