@@ -1,0 +1,59 @@
+// Pretoria BI — governed DAX measure contract.
+// Design-source artifact only; not a Power BI Desktop validation claim.
+
+[Occupancy %] =
+DIVIDE(
+    SUM('kpi_rooms_daily'[rooms_sold]),
+    SUM('kpi_rooms_daily'[rooms_available])
+)
+
+[ADR] =
+DIVIDE(
+    SUM('kpi_rooms_daily'[room_revenue]),
+    SUM('kpi_rooms_daily'[rooms_sold])
+)
+
+[RevPAR] =
+DIVIDE(
+    SUM('kpi_rooms_daily'[room_revenue]),
+    SUM('kpi_rooms_daily'[rooms_available])
+)
+
+[Net F&B Revenue] =
+SUM('kpi_fnb_outlet_daily'[net_revenue])
+
+[Average Check] =
+DIVIDE(
+    SUM('kpi_fnb_outlet_daily'[net_revenue]),
+    SUM('kpi_fnb_outlet_daily'[covers])
+)
+
+[Discount Rate] =
+DIVIDE(
+    SUM('kpi_fnb_outlet_daily'[discount_amount]),
+    SUM('kpi_fnb_outlet_daily'[gross_revenue])
+)
+
+[Purchase Price Variance] =
+SUM('kpi_purchasing_daily'[purchase_price_variance])
+
+[Waste Cost] =
+SUM('kpi_inventory_daily'[waste_cost])
+
+[Waste %] =
+DIVIDE(
+    SUM('kpi_inventory_daily'[waste_qty]),
+    SUM('kpi_inventory_daily'[usage_qty]) + SUM('kpi_inventory_daily'[waste_qty])
+)
+
+[Labour Cost per Hour] =
+DIVIDE(
+    SUM('kpi_labour_daily'[labour_cost]),
+    SUM('kpi_labour_daily'[actual_hours])
+)
+
+[Overtime Share] =
+DIVIDE(
+    SUM('kpi_labour_daily'[overtime_hours]),
+    SUM('kpi_labour_daily'[actual_hours])
+)
