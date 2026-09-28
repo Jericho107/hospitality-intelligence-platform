@@ -419,6 +419,213 @@ LINEAGE_CONTROLS = (
     ),
 )
 
+DIMENSION_LINEAGE_CONTROLS = (
+    DiscrepancyControl(
+        "property_dimension_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            (
+                SELECT
+                    property_id,
+                    property_name,
+                    archetype,
+                    rooms_count::integer,
+                    city
+                FROM raw.properties
+                EXCEPT
+                SELECT
+                    property_id,
+                    property_name,
+                    archetype,
+                    rooms_count,
+                    city
+                FROM analytics.dim_property
+            )
+            UNION ALL
+            (
+                SELECT
+                    property_id,
+                    property_name,
+                    archetype,
+                    rooms_count,
+                    city
+                FROM analytics.dim_property
+                EXCEPT
+                SELECT
+                    property_id,
+                    property_name,
+                    archetype,
+                    rooms_count::integer,
+                    city
+                FROM raw.properties
+            )
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "outlet_dimension_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            (
+                SELECT outlet_id, property_id, outlet_name, outlet_type
+                FROM raw.outlets
+                EXCEPT
+                SELECT o.outlet_id, p.property_id, o.outlet_name, o.outlet_type
+                FROM analytics.dim_outlet o
+                JOIN analytics.dim_property p USING (property_key)
+            )
+            UNION ALL
+            (
+                SELECT o.outlet_id, p.property_id, o.outlet_name, o.outlet_type
+                FROM analytics.dim_outlet o
+                JOIN analytics.dim_property p USING (property_key)
+                EXCEPT
+                SELECT outlet_id, property_id, outlet_name, outlet_type
+                FROM raw.outlets
+            )
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "product_dimension_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            (
+                SELECT
+                    product_id,
+                    outlet_id,
+                    property_id,
+                    product_name,
+                    category,
+                    menu_price::numeric(14,2),
+                    standard_unit_cost::numeric(14,2),
+                    inventory_usage_per_unit::numeric(14,4)
+                FROM raw.products
+                EXCEPT
+                SELECT
+                    pr.product_id,
+                    o.outlet_id,
+                    p.property_id,
+                    pr.product_name,
+                    pr.category,
+                    pr.menu_price,
+                    pr.standard_unit_cost,
+                    pr.inventory_usage_per_unit
+                FROM analytics.dim_product pr
+                JOIN analytics.dim_outlet o USING (outlet_key)
+                JOIN analytics.dim_property p USING (property_key)
+            )
+            UNION ALL
+            (
+                SELECT
+                    pr.product_id,
+                    o.outlet_id,
+                    p.property_id,
+                    pr.product_name,
+                    pr.category,
+                    pr.menu_price,
+                    pr.standard_unit_cost,
+                    pr.inventory_usage_per_unit
+                FROM analytics.dim_product pr
+                JOIN analytics.dim_outlet o USING (outlet_key)
+                JOIN analytics.dim_property p USING (property_key)
+                EXCEPT
+                SELECT
+                    product_id,
+                    outlet_id,
+                    property_id,
+                    product_name,
+                    category,
+                    menu_price::numeric(14,2),
+                    standard_unit_cost::numeric(14,2),
+                    inventory_usage_per_unit::numeric(14,4)
+                FROM raw.products
+            )
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "supplier_dimension_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            (
+                SELECT supplier_id, supplier_name, category
+                FROM raw.suppliers
+                EXCEPT
+                SELECT supplier_id, supplier_name, category
+                FROM analytics.dim_supplier
+            )
+            UNION ALL
+            (
+                SELECT supplier_id, supplier_name, category
+                FROM analytics.dim_supplier
+                EXCEPT
+                SELECT supplier_id, supplier_name, category
+                FROM raw.suppliers
+            )
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "department_dimension_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            (
+                SELECT department_id, department_name
+                FROM raw.departments
+                EXCEPT
+                SELECT department_id, department_name
+                FROM analytics.dim_department
+            )
+            UNION ALL
+            (
+                SELECT department_id, department_name
+                FROM analytics.dim_department
+                EXCEPT
+                SELECT department_id, department_name
+                FROM raw.departments
+            )
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "room_segment_dimension_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            (
+                SELECT DISTINCT segment FROM raw.pms_bookings_daily
+                EXCEPT
+                SELECT segment_name FROM analytics.dim_room_segment
+            )
+            UNION ALL
+            (
+                SELECT segment_name FROM analytics.dim_room_segment
+                EXCEPT
+                SELECT DISTINCT segment FROM raw.pms_bookings_daily
+            )
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "channel_dimension_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            (
+                SELECT DISTINCT channel FROM raw.pms_bookings_daily
+                EXCEPT
+                SELECT channel_name FROM analytics.dim_channel
+            )
+            UNION ALL
+            (
+                SELECT channel_name FROM analytics.dim_channel
+                EXCEPT
+                SELECT DISTINCT channel FROM raw.pms_bookings_daily
+            )
+        ) diff
+        """,
+    ),
+)
+
 ALL_PAIR_CONTROLS = ROW_COUNT_CONTROLS + QUANTITY_CONTROLS + MONEY_CONTROLS
 
 
@@ -469,11 +676,15 @@ def run_warehouse_validation(
         evaluate_pair(control, runtime)
         for control in ALL_PAIR_CONTROLS
     ]
-    lineage_results = [
+    fact_lineage_results = [
         evaluate_discrepancy(control, runtime)
         for control in LINEAGE_CONTROLS
     ]
-    return pair_results + lineage_results
+    dimension_lineage_results = [
+        evaluate_discrepancy(control, runtime)
+        for control in DIMENSION_LINEAGE_CONTROLS
+    ]
+    return pair_results + fact_lineage_results + dimension_lineage_results
 
 
 def main() -> None:
