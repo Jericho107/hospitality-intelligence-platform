@@ -23,6 +23,14 @@ class PairControl:
 
 
 @dataclass(frozen=True)
+class DiscrepancyControl:
+    """A query that must return zero mismatched rows."""
+
+    name: str
+    query: str
+
+
+@dataclass(frozen=True)
 class ValidationResult:
     """Observed delta for one warehouse control."""
 
@@ -93,8 +101,10 @@ QUANTITY_CONTROLS = (
     ),
     PairControl(
         "rooms_sold",
-        "SELECT COALESCE(SUM(rooms_sold::numeric), 0) FROM raw.pms_bookings_daily",
-        "SELECT COALESCE(SUM(rooms_sold), 0) FROM analytics.fact_room_bookings_daily",
+        "SELECT COALESCE(SUM(rooms_sold::numeric), 0) "
+        "FROM raw.pms_bookings_daily",
+        "SELECT COALESCE(SUM(rooms_sold), 0) "
+        "FROM analytics.fact_room_bookings_daily",
         QUANTITY_TOLERANCE,
     ),
     PairControl(
@@ -105,8 +115,10 @@ QUANTITY_CONTROLS = (
     ),
     PairControl(
         "units_sold",
-        "SELECT COALESCE(SUM(units_sold::numeric), 0) FROM raw.pos_product_mix_daily",
-        "SELECT COALESCE(SUM(units_sold), 0) FROM analytics.fact_pos_product_daily",
+        "SELECT COALESCE(SUM(units_sold::numeric), 0) "
+        "FROM raw.pos_product_mix_daily",
+        "SELECT COALESCE(SUM(units_sold), 0) "
+        "FROM analytics.fact_pos_product_daily",
         QUANTITY_TOLERANCE,
     ),
     PairControl(
@@ -144,32 +156,40 @@ QUANTITY_CONTROLS = (
 MONEY_CONTROLS = (
     PairControl(
         "room_revenue",
-        "SELECT COALESCE(SUM(room_revenue::numeric), 0) FROM raw.pms_bookings_daily",
-        "SELECT COALESCE(SUM(room_revenue), 0) FROM analytics.fact_room_bookings_daily",
+        "SELECT COALESCE(SUM(room_revenue::numeric), 0) "
+        "FROM raw.pms_bookings_daily",
+        "SELECT COALESCE(SUM(room_revenue), 0) "
+        "FROM analytics.fact_room_bookings_daily",
         MONEY_TOLERANCE,
     ),
     PairControl(
         "pos_outlet_net_revenue",
         "SELECT COALESCE(SUM(net_revenue::numeric), 0) FROM raw.pos_checks_daily",
-        "SELECT COALESCE(SUM(net_revenue), 0) FROM analytics.fact_pos_outlet_daily",
+        "SELECT COALESCE(SUM(net_revenue), 0) "
+        "FROM analytics.fact_pos_outlet_daily",
         MONEY_TOLERANCE,
     ),
     PairControl(
         "pos_product_net_revenue",
-        "SELECT COALESCE(SUM(net_revenue::numeric), 0) FROM raw.pos_product_mix_daily",
-        "SELECT COALESCE(SUM(net_revenue), 0) FROM analytics.fact_pos_product_daily",
+        "SELECT COALESCE(SUM(net_revenue::numeric), 0) "
+        "FROM raw.pos_product_mix_daily",
+        "SELECT COALESCE(SUM(net_revenue), 0) "
+        "FROM analytics.fact_pos_product_daily",
         MONEY_TOLERANCE,
     ),
     PairControl(
         "purchase_cost",
         "SELECT COALESCE(SUM(purchase_cost::numeric), 0) FROM raw.purchases_daily",
-        "SELECT COALESCE(SUM(purchase_cost), 0) FROM analytics.fact_purchases_daily",
+        "SELECT COALESCE(SUM(purchase_cost), 0) "
+        "FROM analytics.fact_purchases_daily",
         MONEY_TOLERANCE,
     ),
     PairControl(
         "inventory_value",
-        "SELECT COALESCE(SUM(inventory_value::numeric), 0) FROM raw.inventory_daily",
-        "SELECT COALESCE(SUM(inventory_value), 0) FROM analytics.fact_inventory_daily",
+        "SELECT COALESCE(SUM(inventory_value::numeric), 0) "
+        "FROM raw.inventory_daily",
+        "SELECT COALESCE(SUM(inventory_value), 0) "
+        "FROM analytics.fact_inventory_daily",
         MONEY_TOLERANCE,
     ),
     PairControl(
@@ -181,18 +201,225 @@ MONEY_CONTROLS = (
     PairControl(
         "budget_revenue",
         "SELECT COALESCE(SUM(budget_revenue::numeric), 0) FROM raw.budget_monthly",
-        "SELECT COALESCE(SUM(budget_revenue), 0) FROM analytics.fact_budget_monthly",
+        "SELECT COALESCE(SUM(budget_revenue), 0) "
+        "FROM analytics.fact_budget_monthly",
         MONEY_TOLERANCE,
     ),
     PairControl(
         "budget_cost",
         "SELECT COALESCE(SUM(budget_cost::numeric), 0) FROM raw.budget_monthly",
-        "SELECT COALESCE(SUM(budget_cost), 0) FROM analytics.fact_budget_monthly",
+        "SELECT COALESCE(SUM(budget_cost), 0) "
+        "FROM analytics.fact_budget_monthly",
         MONEY_TOLERANCE,
     ),
 )
 
-ALL_CONTROLS = ROW_COUNT_CONTROLS + QUANTITY_CONTROLS + MONEY_CONTROLS
+LINEAGE_CONTROLS = (
+    DiscrepancyControl(
+        "room_inventory_business_key_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            SELECT date::date, property_id, rooms_available::integer
+            FROM raw.pms_inventory_daily
+            EXCEPT
+            SELECT d.full_date, p.property_id, f.rooms_available
+            FROM analytics.fact_room_inventory_daily f
+            JOIN analytics.dim_date d USING (date_key)
+            JOIN analytics.dim_property p USING (property_key)
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "room_booking_business_key_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            SELECT
+                date::date,
+                property_id,
+                segment,
+                channel,
+                rooms_sold::integer,
+                room_revenue::numeric(14,2)
+            FROM raw.pms_bookings_daily
+            EXCEPT
+            SELECT
+                d.full_date,
+                p.property_id,
+                s.segment_name,
+                c.channel_name,
+                f.rooms_sold,
+                f.room_revenue
+            FROM analytics.fact_room_bookings_daily f
+            JOIN analytics.dim_date d USING (date_key)
+            JOIN analytics.dim_property p USING (property_key)
+            JOIN analytics.dim_room_segment s USING (segment_key)
+            JOIN analytics.dim_channel c USING (channel_key)
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "pos_outlet_business_key_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            SELECT
+                date::date,
+                property_id,
+                outlet_id,
+                covers::integer,
+                net_revenue::numeric(14,2)
+            FROM raw.pos_checks_daily
+            EXCEPT
+            SELECT
+                d.full_date,
+                p.property_id,
+                o.outlet_id,
+                f.covers,
+                f.net_revenue
+            FROM analytics.fact_pos_outlet_daily f
+            JOIN analytics.dim_date d USING (date_key)
+            JOIN analytics.dim_property p USING (property_key)
+            JOIN analytics.dim_outlet o USING (outlet_key)
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "pos_product_business_key_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            SELECT
+                date::date,
+                property_id,
+                outlet_id,
+                product_id,
+                units_sold::integer,
+                net_revenue::numeric(14,2)
+            FROM raw.pos_product_mix_daily
+            EXCEPT
+            SELECT
+                d.full_date,
+                p.property_id,
+                o.outlet_id,
+                pr.product_id,
+                f.units_sold,
+                f.net_revenue
+            FROM analytics.fact_pos_product_daily f
+            JOIN analytics.dim_date d USING (date_key)
+            JOIN analytics.dim_property p USING (property_key)
+            JOIN analytics.dim_outlet o USING (outlet_key)
+            JOIN analytics.dim_product pr USING (product_key)
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "purchase_business_key_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            SELECT
+                date::date,
+                property_id,
+                product_id,
+                supplier_id,
+                quantity::numeric(14,2),
+                purchase_cost::numeric(14,2)
+            FROM raw.purchases_daily
+            EXCEPT
+            SELECT
+                d.full_date,
+                p.property_id,
+                pr.product_id,
+                s.supplier_id,
+                f.quantity,
+                f.purchase_cost
+            FROM analytics.fact_purchases_daily f
+            JOIN analytics.dim_date d USING (date_key)
+            JOIN analytics.dim_property p USING (property_key)
+            JOIN analytics.dim_product pr USING (product_key)
+            JOIN analytics.dim_supplier s USING (supplier_key)
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "inventory_business_key_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            SELECT
+                date::date,
+                property_id,
+                product_id,
+                usage_qty::numeric(14,2),
+                waste_qty::numeric(14,2),
+                inventory_value::numeric(14,2)
+            FROM raw.inventory_daily
+            EXCEPT
+            SELECT
+                d.full_date,
+                p.property_id,
+                pr.product_id,
+                f.usage_qty,
+                f.waste_qty,
+                f.inventory_value
+            FROM analytics.fact_inventory_daily f
+            JOIN analytics.dim_date d USING (date_key)
+            JOIN analytics.dim_property p USING (property_key)
+            JOIN analytics.dim_product pr USING (product_key)
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "labour_business_key_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            SELECT
+                date::date,
+                property_id,
+                department_id,
+                actual_hours::numeric(14,2),
+                overtime_hours::numeric(14,2),
+                labour_cost::numeric(14,2)
+            FROM raw.labour_daily
+            EXCEPT
+            SELECT
+                d.full_date,
+                p.property_id,
+                dep.department_id,
+                f.actual_hours,
+                f.overtime_hours,
+                f.labour_cost
+            FROM analytics.fact_labour_daily f
+            JOIN analytics.dim_date d USING (date_key)
+            JOIN analytics.dim_property p USING (property_key)
+            JOIN analytics.dim_department dep USING (department_key)
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
+        "budget_business_key_lineage",
+        """
+        SELECT COUNT(*) FROM (
+            SELECT
+                month::date,
+                property_id,
+                department_id,
+                budget_revenue::numeric(14,2),
+                budget_cost::numeric(14,2)
+            FROM raw.budget_monthly
+            EXCEPT
+            SELECT
+                d.full_date,
+                p.property_id,
+                dep.department_id,
+                f.budget_revenue,
+                f.budget_cost
+            FROM analytics.fact_budget_monthly f
+            JOIN analytics.dim_date d USING (date_key)
+            JOIN analytics.dim_property p USING (property_key)
+            JOIN analytics.dim_department dep USING (department_key)
+        ) diff
+        """,
+    ),
+)
+
+ALL_PAIR_CONTROLS = ROW_COUNT_CONTROLS + QUANTITY_CONTROLS + MONEY_CONTROLS
 
 
 def _decimal(value: object) -> Decimal:
@@ -203,7 +430,7 @@ def evaluate_pair(
     control: PairControl,
     settings: DatabaseSettings,
 ) -> ValidationResult:
-    """Evaluate one source-to-fact control."""
+    """Evaluate one source-to-fact aggregate equality control."""
 
     source_value = _decimal(fetch_one(control.source_query, settings)[0])
     target_value = _decimal(fetch_one(control.target_query, settings)[0])
@@ -216,13 +443,37 @@ def evaluate_pair(
     )
 
 
+def evaluate_discrepancy(
+    control: DiscrepancyControl,
+    settings: DatabaseSettings,
+) -> ValidationResult:
+    """Evaluate one zero-mismatch business-key lineage control."""
+
+    mismatch_count = _decimal(fetch_one(control.query, settings)[0])
+    return ValidationResult(
+        name=control.name,
+        source_value=Decimal("0"),
+        target_value=mismatch_count,
+        delta=mismatch_count,
+        tolerance=Decimal("0"),
+    )
+
+
 def run_warehouse_validation(
     settings: DatabaseSettings | None = None,
 ) -> list[ValidationResult]:
-    """Validate row counts, operational quantities, and financial totals."""
+    """Validate facts at count, aggregate, and business-key lineage levels."""
 
     runtime = settings or load_settings()
-    return [evaluate_pair(control, runtime) for control in ALL_CONTROLS]
+    pair_results = [
+        evaluate_pair(control, runtime)
+        for control in ALL_PAIR_CONTROLS
+    ]
+    lineage_results = [
+        evaluate_discrepancy(control, runtime)
+        for control in LINEAGE_CONTROLS
+    ]
+    return pair_results + lineage_results
 
 
 def main() -> None:
