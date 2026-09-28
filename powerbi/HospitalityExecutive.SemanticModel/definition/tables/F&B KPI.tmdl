@@ -1,0 +1,88 @@
+table 'F&B KPI'
+
+    measure Covers = SUM('F&B KPI'[covers])
+        formatString: #,0
+        displayFolder: Food & Beverage
+
+    measure 'F&B Gross Revenue' = SUM('F&B KPI'[gross_revenue])
+        formatString: #,0.00
+        displayFolder: Food & Beverage
+
+    measure Discounts = SUM('F&B KPI'[discount_amount])
+        formatString: #,0.00
+        displayFolder: Food & Beverage
+
+    measure 'Net F&B Revenue' = SUM('F&B KPI'[net_revenue])
+        formatString: #,0.00
+        displayFolder: Food & Beverage
+
+    measure 'Average Check' = DIVIDE([Net F&B Revenue], [Covers])
+        formatString: #,0.00
+        displayFolder: Food & Beverage
+
+    measure 'Discount Rate' = DIVIDE([Discounts], [F&B Gross Revenue])
+        formatString: 0.0%
+        displayFolder: Food & Beverage
+
+    column date_key
+        dataType: int64
+        isHidden
+        sourceColumn: date_key
+        summarizeBy: none
+
+    column property_key
+        dataType: int64
+        isHidden
+        sourceColumn: property_key
+        summarizeBy: none
+
+    column outlet_key
+        dataType: int64
+        isHidden
+        sourceColumn: outlet_key
+        summarizeBy: none
+
+    column covers
+        dataType: int64
+        isHidden
+        sourceColumn: covers
+        summarizeBy: sum
+
+    column gross_revenue
+        dataType: decimal
+        isHidden
+        sourceColumn: gross_revenue
+        summarizeBy: sum
+
+    column discount_amount
+        dataType: decimal
+        isHidden
+        sourceColumn: discount_amount
+        summarizeBy: sum
+
+    column net_revenue
+        dataType: decimal
+        isHidden
+        sourceColumn: net_revenue
+        summarizeBy: sum
+
+    column average_check
+        dataType: decimal
+        isHidden
+        sourceColumn: average_check
+        summarizeBy: none
+
+    column discount_rate
+        dataType: decimal
+        isHidden
+        sourceColumn: discount_rate
+        summarizeBy: none
+
+    partition 'F&B KPI' = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="kpi_fnb_outlet_daily"]}[Data]
+                in
+                    Data
