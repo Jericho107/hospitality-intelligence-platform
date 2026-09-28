@@ -1,0 +1,83 @@
+name: ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: hospitality-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Compile
+        run: python -m compileall -q src tests
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Unit tests
+        run: pytest -q
+
+      - name: Generate seeded source system
+        run: |
+          python -m hospitality_intelligence.generate_synthetic_data \
+            --output-dir data/sample \
+            --days 60 \
+            --seed 42 \
+            --anchor 2026-09-01T00:00:00+00:00 \
+            --scenario margin_leakage
+
+      - name: Validate clean source contracts
+        run: >-
+          python -m hospitality_intelligence.validate_sources
+          --data-dir data/sample
+
+      - name: Inject controlled cross-source mismatch
+        run: |
+          python -m hospitality_intelligence.failure_injection \
+            --data-dir data/sample \
+            --case pos_revenue_mismatch
+
+      - name: Prove source validation fails closed
+        shell: bash
+        run: |
+          if python -m hospitality_intelligence.validate_sources --data-dir data/sample; then
+            echo "Expected validation to fail after controlled mismatch."
+            exit 1
+          fi
+          echo "Controlled mismatch detected as expected."
+
+      - name: Restore source state and prove recovery
+        run: |
+          python -m hospitality_intelligence.generate_synthetic_data \
+            --output-dir data/sample \
+            --days 60 \
+            --seed 42 \
+            --anchor 2026-09-01T00:00:00+00:00 \
+            --scenario margin_leakage
+          python -m hospitality_intelligence.validate_sources --data-dir data/sample
