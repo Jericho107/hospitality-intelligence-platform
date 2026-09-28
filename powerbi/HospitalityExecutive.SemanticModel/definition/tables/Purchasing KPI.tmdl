@@ -1,0 +1,74 @@
+table 'Purchasing KPI'
+
+    measure 'Purchase Quantity' = SUM('Purchasing KPI'[quantity])
+        formatString: #,0.00
+        displayFolder: Purchasing
+
+    measure 'Actual Purchase Cost' = SUM('Purchasing KPI'[actual_purchase_cost])
+        formatString: #,0.00
+        displayFolder: Purchasing
+
+    measure 'Standard Purchase Cost' = SUM('Purchasing KPI'[standard_purchase_cost])
+        formatString: #,0.00
+        displayFolder: Purchasing
+
+    measure 'Purchase Price Variance' = [Actual Purchase Cost] - [Standard Purchase Cost]
+        formatString: #,0.00
+        displayFolder: Purchasing
+
+    column date_key
+        dataType: int64
+        isHidden
+        sourceColumn: date_key
+        summarizeBy: none
+
+    column property_key
+        dataType: int64
+        isHidden
+        sourceColumn: property_key
+        summarizeBy: none
+
+    column product_key
+        dataType: int64
+        isHidden
+        sourceColumn: product_key
+        summarizeBy: none
+
+    column supplier_key
+        dataType: int64
+        isHidden
+        sourceColumn: supplier_key
+        summarizeBy: none
+
+    column quantity
+        dataType: decimal
+        isHidden
+        sourceColumn: quantity
+        summarizeBy: sum
+
+    column actual_purchase_cost
+        dataType: decimal
+        isHidden
+        sourceColumn: actual_purchase_cost
+        summarizeBy: sum
+
+    column standard_purchase_cost
+        dataType: decimal
+        isHidden
+        sourceColumn: standard_purchase_cost
+        summarizeBy: sum
+
+    column purchase_price_variance
+        dataType: decimal
+        isHidden
+        sourceColumn: purchase_price_variance
+        summarizeBy: none
+
+    partition 'Purchasing KPI' = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="kpi_purchasing_daily"]}[Data]
+                in
+                    Data
