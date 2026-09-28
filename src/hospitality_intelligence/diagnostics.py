@@ -45,15 +45,24 @@ def _safe_ratio(numerator: float, denominator: float) -> float:
     return 0.0 if denominator == 0 else numerator / denominator
 
 
+def _final_window(frame: pd.DataFrame, date_column: str, days: int = 20) -> pd.DataFrame:
+    """Return the final calendar window from a dated source frame."""
+
+    dates = pd.to_datetime(frame[date_column])
+    end = dates.max()
+    start = end - pd.Timedelta(days=days - 1)
+    return frame.loc[dates.between(start, end)].copy()
+
+
 def snapshot(data_dir: Path, property_id: str = "P002") -> ScenarioSnapshot:
     """Build scenario-level evidence for the controlled leakage property."""
 
     products = _read(data_dir, "products.csv")
-    purchases = _read(data_dir, "purchases_daily.csv")
-    inventory = _read(data_dir, "inventory_daily.csv")
-    labour = _read(data_dir, "labour_daily.csv")
-    bookings = _read(data_dir, "pms_bookings_daily.csv")
-    pos = _read(data_dir, "pos_checks_daily.csv")
+    purchases = _final_window(_read(data_dir, "purchases_daily.csv"), "date")
+    inventory = _final_window(_read(data_dir, "inventory_daily.csv"), "date")
+    labour = _final_window(_read(data_dir, "labour_daily.csv"), "date")
+    bookings = _final_window(_read(data_dir, "pms_bookings_daily.csv"), "date")
+    pos = _final_window(_read(data_dir, "pos_checks_daily.csv"), "date")
 
     beverage_products = set(
         products.loc[
