@@ -24,7 +24,7 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ---
 
-## Current implementation — Phase 2
+## Current implementation — Phase 3
 
 The platform now proves two separate data-trust boundaries before KPI or dashboard logic receives credit.
 
@@ -40,15 +40,18 @@ The platform now proves two separate data-trust boundaries before KPI or dashboa
 - reconciliation of material operational quantities and financial totals;
 - business-key lineage checks from raw rows back through analytical dimensions and facts;
 - dimension lineage controls for property, outlet, product, supplier, department, date, segment and channel;
-- CI reverse tests at three levels:
+- machine-readable KPI contracts with explicit grain, formula, owner, exclusions, reconciliation and limitations;
+- materialized KPI marts for Rooms, F&B, Purchasing, Inventory and Labour;
+- independent KPI reconciliation back to analytical facts;
+- CI reverse tests at four levels:
   1. source contract corruption;
   2. raw PostgreSQL target mutation;
   3. analytical fact mutation;
+  4. materialized KPI corruption;
 - deterministic recovery from each controlled failure.
 
 ### Not yet implemented
 
-- governed KPI materialisation;
 - Power BI / DAX artifacts;
 - diagnostic ranking of margin drivers;
 - forecast models;
@@ -201,6 +204,8 @@ Every KPI requires a documented definition, grain, source, formula and limitatio
 | Transformation | SQL + Python orchestration | **implemented** |
 | Dimensional modelling | typed grain-specific facts + dimensions | **implemented** |
 | Raw → analytics validation | counts + quantities + financial + lineage controls | **implemented** |
+| KPI governance | machine-readable contracts | **implemented** |
+| KPI materialisation | SQL marts + independent reconciliation | **implemented** |
 | BI | Power BI / DAX | not yet implemented |
 | Analytics | Python / statistical diagnostics | not yet implemented |
 | Forecasting | baseline-first time-series / ML evaluation | not yet implemented |
@@ -263,11 +268,20 @@ clean raw + clean dimensional build
 → warehouse validation FAIL
 → rebuild analytics
 → PASS
+
+4. GOVERNED KPI LAYER
+clean analytical facts
+→ build KPI marts
+→ metric validation PASS
+→ mutate materialized ADR only
+→ metric validation FAIL
+→ rebuild KPI marts
+→ PASS
 ```
 
-Warehouse validation does not rely only on global totals. It checks fact row counts, material operational quantities, financial totals, business-key lineage and dimension lineage.
+Warehouse validation does not rely only on global totals. KPI validation independently recalculates implemented metrics from facts and rejects drift in the materialized decision layer.
 
-Future phases must add reverse tests for metric contracts, management conclusions and forecasting.
+Future phases must add reverse tests for management conclusions, Power BI behavior and forecasting.
 ---
 
 ## Local validation
@@ -337,7 +351,7 @@ Empty folders are not created for presentation. A directory appears only when it
 
 The repository is **not OFFICIAL**.
 
-Current phase: **Phase 2 — reverse-tested PostgreSQL analytical store**.
+Current phase: **Phase 3 — governed and reverse-tested KPI layer**.
 
 Officialisation requires:
 
