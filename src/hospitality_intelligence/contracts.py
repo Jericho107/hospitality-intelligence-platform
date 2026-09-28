@@ -130,7 +130,10 @@ class InventoryRecord(StrictModel):
         expected_closing = self.opening_qty + self.receipts_qty - self.usage_qty - self.waste_qty
         if abs(expected_closing - self.closing_qty) > QUANTITY_TOLERANCE:
             raise ValueError("inventory roll-forward does not balance")
-        if abs((self.closing_qty * self.weighted_unit_cost) - self.inventory_value) > MONEY_TOLERANCE:
+        inventory_value_delta = abs(
+            (self.closing_qty * self.weighted_unit_cost) - self.inventory_value
+        )
+        if inventory_value_delta > MONEY_TOLERANCE:
             raise ValueError("inventory_value must equal closing_qty * weighted_unit_cost")
         return self
 
