@@ -1,4 +1,4 @@
-.PHONY: install lint test generate validate reverse-test clean
+.PHONY: install lint test generate validate up down ingest reconcile transform warehouse-validate pipeline reverse-test clean
 
 install:
 	python -m pip install --upgrade pip
@@ -20,6 +20,26 @@ generate:
 
 validate:
 	python -m hospitality_intelligence.validate_sources --data-dir data/sample
+
+up:
+	docker compose up -d --wait
+
+down:
+	docker compose down
+
+ingest:
+	python -m hospitality_intelligence.ingest --data-dir data/sample
+
+reconcile:
+	python -m hospitality_intelligence.reconciliation --data-dir data/sample
+
+transform:
+	python -m hospitality_intelligence.transform
+
+warehouse-validate:
+	python -m hospitality_intelligence.validate_warehouse
+
+pipeline: generate validate up ingest reconcile transform warehouse-validate
 
 reverse-test: generate validate
 	python -m hospitality_intelligence.failure_injection \
