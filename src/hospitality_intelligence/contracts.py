@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from datetime import date
 from pathlib import Path
+from typing import Literal
 
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -21,7 +23,7 @@ class StrictModel(BaseModel):
 class PropertyRecord(StrictModel):
     property_id: str
     property_name: str
-    archetype: str
+    archetype: Literal["urban_hotel", "leisure_resort", "boutique_hotel"]
     rooms_count: int = Field(gt=0)
     city: str
 
@@ -30,7 +32,7 @@ class OutletRecord(StrictModel):
     outlet_id: str
     property_id: str
     outlet_name: str
-    outlet_type: str
+    outlet_type: Literal["breakfast", "restaurant", "bar", "lounge"]
 
 
 class ProductRecord(StrictModel):
@@ -38,7 +40,7 @@ class ProductRecord(StrictModel):
     outlet_id: str
     property_id: str
     product_name: str
-    category: str
+    category: Literal["food", "beverage"]
     menu_price: float = Field(gt=0)
     standard_unit_cost: float = Field(gt=0)
     inventory_usage_per_unit: float = Field(gt=0)
@@ -47,7 +49,7 @@ class ProductRecord(StrictModel):
 class SupplierRecord(StrictModel):
     supplier_id: str
     supplier_name: str
-    category: str
+    category: Literal["food", "beverage"]
 
 
 class DepartmentRecord(StrictModel):
@@ -56,22 +58,22 @@ class DepartmentRecord(StrictModel):
 
 
 class PMSInventoryRecord(StrictModel):
-    date: str
+    date: date
     property_id: str
     rooms_available: int = Field(gt=0)
 
 
 class PMSBookingRecord(StrictModel):
-    date: str
+    date: date
     property_id: str
-    segment: str
-    channel: str
+    segment: Literal["corporate", "leisure", "group"]
+    channel: Literal["direct", "ota", "corporate"]
     rooms_sold: int = Field(ge=0)
     room_revenue: float = Field(ge=0)
 
 
 class POSCheckRecord(StrictModel):
-    date: str
+    date: date
     property_id: str
     outlet_id: str
     covers: int = Field(ge=0)
@@ -87,7 +89,7 @@ class POSCheckRecord(StrictModel):
 
 
 class POSProductMixRecord(StrictModel):
-    date: str
+    date: date
     property_id: str
     outlet_id: str
     product_id: str
@@ -96,7 +98,7 @@ class POSProductMixRecord(StrictModel):
 
 
 class PurchaseRecord(StrictModel):
-    date: str
+    date: date
     property_id: str
     product_id: str
     supplier_id: str
@@ -112,7 +114,7 @@ class PurchaseRecord(StrictModel):
 
 
 class InventoryRecord(StrictModel):
-    date: str
+    date: date
     property_id: str
     product_id: str
     opening_qty: float = Field(ge=0)
@@ -134,7 +136,7 @@ class InventoryRecord(StrictModel):
 
 
 class LabourRecord(StrictModel):
-    date: str
+    date: date
     property_id: str
     department_id: str
     scheduled_hours: float = Field(ge=0)
@@ -150,11 +152,17 @@ class LabourRecord(StrictModel):
 
 
 class BudgetRecord(StrictModel):
-    month: str
+    month: date
     property_id: str
     department_id: str
     budget_revenue: float = Field(ge=0)
     budget_cost: float = Field(ge=0)
+
+    @model_validator(mode="after")
+    def validate_month_grain(self) -> "BudgetRecord":
+        if self.month.day != 1:
+            raise ValueError("budget month must be represented by the first calendar day")
+        return self
 
 
 SOURCE_MODELS: dict[str, type[StrictModel]] = {
@@ -222,9 +230,21 @@ def _validate_cross_source(frames: dict[str, pd.DataFrame]) -> None:
     supplier_ids = set(suppliers["supplier_id"])
     department_ids = set(departments["department_id"])
 
+    outlet_property = dict(zip(outlets["outlet_id"], outlets["property_id"], strict=True))
+    product_property = dict(zip(products["product_id"], products["property_id"], strict=True))
+    product_outlet = dict(zip(products["product_id"], products["outlet_id"], strict=True))
+    product_category = dict(zip(products["product_id"], products["category"], strict=True))
+    supplier_category = dict(zip(suppliers["supplier_id"], suppliers["category"], strict=True))
+
     _require_members(outlets["property_id"], property_ids, "outlets.property_id")
     _require_members(products["property_id"], property_ids, "products.property_id")
     _require_members(products["outlet_id"], outlet_ids, "products.outlet_id")
+
+    for row in products.itertuples(index=False):
+        if outlet_property[row.outlet_id] != row.property_id:
+            raise ValueError(
+                f"products.csv: product {row.product_id} property does not match its outlet"
+            )
 
     for filename in [
         "pms_inventory_daily.csv",
@@ -244,9 +264,43 @@ def _validate_cross_source(frames: dict[str, pd.DataFrame]) -> None:
     for filename in ["pos_product_mix_daily.csv", "purchases_daily.csv", "inventory_daily.csv"]:
         _require_members(frames[filename]["product_id"], product_ids, f"{filename}.product_id")
 
-    _require_members(frames["purchases_daily.csv"]["supplier_id"], supplier_ids, "purchases.supplier_id")
-    _require_members(frames["labour_daily.csv"]["department_id"], department_ids, "labour.department_id")
-    _require_members(frames["budget_monthly.csv"]["department_id"], department_ids, "budget.department_id")
+    _require_members(
+        frames["purchases_daily.csv"]["supplier_id"],
+        supplier_ids,
+        "purchases.supplier_id",
+    )
+    _require_members(
+        frames["labour_daily.csv"]["department_id"],
+        department_ids,
+        "labour.department_id",
+    )
+    _require_members(
+        frames["budget_monthly.csv"]["department_id"],
+        department_ids,
+        "budget.department_id",
+    )
+
+    for row in frames["pos_checks_daily.csv"].itertuples(index=False):
+        if outlet_property[row.outlet_id] != row.property_id:
+            raise ValueError("POS check property does not match outlet ownership")
+
+    for row in frames["pos_product_mix_daily.csv"].itertuples(index=False):
+        if outlet_property[row.outlet_id] != row.property_id:
+            raise ValueError("POS product-mix property does not match outlet ownership")
+        if product_outlet[row.product_id] != row.outlet_id:
+            raise ValueError("POS product-mix product does not belong to the reported outlet")
+        if product_property[row.product_id] != row.property_id:
+            raise ValueError("POS product-mix product does not belong to the reported property")
+
+    for row in frames["purchases_daily.csv"].itertuples(index=False):
+        if product_property[row.product_id] != row.property_id:
+            raise ValueError("Purchase product does not belong to the reported property")
+        if supplier_category[row.supplier_id] != product_category[row.product_id]:
+            raise ValueError("Purchase supplier category does not match product category")
+
+    for row in frames["inventory_daily.csv"].itertuples(index=False):
+        if product_property[row.product_id] != row.property_id:
+            raise ValueError("Inventory product does not belong to the reported property")
 
     room_inventory = frames["pms_inventory_daily.csv"].groupby(
         ["date", "property_id"], as_index=False
@@ -271,7 +325,8 @@ def _validate_cross_source(frames: dict[str, pd.DataFrame]) -> None:
         suffixes=("_checks", "_mix"),
     ).fillna(0)
     pos_reconciliation["delta"] = (
-        pos_reconciliation["net_revenue_checks"] - pos_reconciliation["net_revenue_mix"]
+        pos_reconciliation["net_revenue_checks"]
+        - pos_reconciliation["net_revenue_mix"]
     ).abs()
     if (pos_reconciliation["delta"] > MONEY_TOLERANCE).any():
         raise ValueError("POS cross-check failed: product mix does not reconcile to outlet checks")
