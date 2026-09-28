@@ -607,6 +607,68 @@ DIMENSION_LINEAGE_CONTROLS = (
         """,
     ),
     DiscrepancyControl(
+        "date_dimension_lineage",
+        """
+        WITH source_dates AS (
+            SELECT date::date AS full_date FROM raw.pms_inventory_daily
+            UNION
+            SELECT date::date FROM raw.pms_bookings_daily
+            UNION
+            SELECT date::date FROM raw.pos_checks_daily
+            UNION
+            SELECT date::date FROM raw.pos_product_mix_daily
+            UNION
+            SELECT date::date FROM raw.purchases_daily
+            UNION
+            SELECT date::date FROM raw.inventory_daily
+            UNION
+            SELECT date::date FROM raw.labour_daily
+            UNION
+            SELECT month::date FROM raw.budget_monthly
+        ),
+        expected AS (
+            SELECT
+                full_date,
+                EXTRACT(YEAR FROM full_date)::integer AS year_number,
+                EXTRACT(MONTH FROM full_date)::integer AS month_number,
+                EXTRACT(DAY FROM full_date)::integer AS day_number,
+                DATE_TRUNC('month', full_date)::date AS month_start,
+                TRIM(TO_CHAR(full_date, 'Day')) AS day_name,
+                EXTRACT(ISODOW FROM full_date) IN (6, 7) AS is_weekend
+            FROM source_dates
+        )
+        SELECT COUNT(*) FROM (
+            (
+                SELECT * FROM expected
+                EXCEPT
+                SELECT
+                    full_date,
+                    year_number,
+                    month_number,
+                    day_number,
+                    month_start,
+                    day_name,
+                    is_weekend
+                FROM analytics.dim_date
+            )
+            UNION ALL
+            (
+                SELECT
+                    full_date,
+                    year_number,
+                    month_number,
+                    day_number,
+                    month_start,
+                    day_name,
+                    is_weekend
+                FROM analytics.dim_date
+                EXCEPT
+                SELECT * FROM expected
+            )
+        ) diff
+        """,
+    ),
+    DiscrepancyControl(
         "channel_dimension_lineage",
         """
         SELECT COUNT(*) FROM (
