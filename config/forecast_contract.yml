@@ -11,6 +11,7 @@ protocol:
   target_lags: [7, 14, 21, 28, 35, 42, 56]
   rolling_window_days: 28
   random_state: 42
+  robustness_seeds: [7, 42, 107]
 
 baseline:
   id: seasonal_naive_7d
