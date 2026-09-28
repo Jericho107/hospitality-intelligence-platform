@@ -1,0 +1,183 @@
+metrics:
+  - id: occupancy_pct
+    name: Occupancy %
+    domain: rooms
+    purpose: Measure sold room demand against sellable inventory.
+    formula: occupied_room_nights / available_room_nights
+    grain: property_date
+    sources: [pms_room_nights]
+    owner: Revenue Management
+    refresh: daily
+    exclusions:
+      - Out-of-order rooms are excluded from available_room_nights.
+      - House-use rooms are not counted as occupied room nights.
+    reconciliation: occupied_room_nights <= available_room_nights and available_room_nights > 0
+    limitations:
+      - Does not by itself indicate rate quality or distribution cost.
+
+  - id: adr
+    name: Average Daily Rate
+    domain: rooms
+    purpose: Measure realized room revenue per occupied room night.
+    formula: net_room_revenue / occupied_room_nights
+    grain: property_date
+    sources: [pms_room_nights]
+    owner: Revenue Management
+    refresh: daily
+    exclusions:
+      - Taxes are excluded from net_room_revenue.
+      - Complimentary and house-use rooms are excluded from occupied_room_nights.
+    reconciliation: net_room_revenue reconciles to PMS room revenue control total
+    limitations:
+      - ADR can improve while profitability deteriorates through channel costs.
+
+  - id: revpar
+    name: RevPAR
+    domain: rooms
+    purpose: Measure room revenue productivity of sellable inventory.
+    formula: net_room_revenue / available_room_nights
+    grain: property_date
+    sources: [pms_room_nights]
+    owner: Revenue Management
+    refresh: daily
+    exclusions:
+      - Out-of-order rooms are excluded from available_room_nights.
+    reconciliation: revpar equals adr * occupancy_pct within rounding tolerance
+    limitations:
+      - Does not deduct distribution acquisition cost.
+
+  - id: net_revpar
+    name: Net RevPAR
+    domain: rooms
+    purpose: Measure room revenue productivity after channel acquisition cost.
+    formula: (net_room_revenue - distribution_cost) / available_room_nights
+    grain: property_date_channel
+    sources: [pms_room_nights]
+    owner: Revenue Management
+    refresh: daily
+    exclusions:
+      - Taxes are excluded.
+    reconciliation: distribution_cost is non-negative and reconciles by channel
+    limitations:
+      - Excludes property-level fixed operating expenses.
+
+  - id: fnb_gross_margin_pct
+    name: F&B Gross Margin %
+    domain: fnb
+    purpose: Measure F&B revenue retained after direct product cost.
+    formula: (net_fnb_revenue - fnb_cogs) / net_fnb_revenue
+    grain: property_outlet_date
+    sources: [pos_sales, inventory_movements]
+    owner: F&B Management
+    refresh: daily
+    exclusions:
+      - Taxes, service charge and tips are excluded from net_fnb_revenue.
+      - Labour is excluded from fnb_cogs.
+    reconciliation: net_fnb_revenue reconciles to POS and fnb_cogs reconciles to inventory valuation
+    limitations:
+      - Gross margin is not outlet operating profit.
+
+  - id: food_cost_pct
+    name: Food Cost %
+    domain: fnb
+    purpose: Monitor food product cost relative to food revenue.
+    formula: food_cogs / net_food_revenue
+    grain: property_outlet_date
+    sources: [pos_sales, inventory_movements]
+    owner: Executive Chef / F&B Management
+    refresh: daily
+    exclusions:
+      - Beverage revenue and beverage cost are excluded.
+    reconciliation: food_cogs reconciles to food inventory consumption
+    limitations:
+      - Menu mix can move the ratio without supplier-price deterioration.
+
+  - id: beverage_cost_pct
+    name: Beverage Cost %
+    domain: fnb
+    purpose: Monitor beverage product cost relative to beverage revenue.
+    formula: beverage_cogs / net_beverage_revenue
+    grain: property_outlet_date
+    sources: [pos_sales, inventory_movements]
+    owner: F&B Management
+    refresh: daily
+    exclusions:
+      - Food revenue and food cost are excluded.
+    reconciliation: beverage_cogs reconciles to beverage inventory consumption
+    limitations:
+      - Promotions and complimentary consumption require separate interpretation.
+
+  - id: purchase_price_variance
+    name: Purchase Price Variance
+    domain: purchasing
+    purpose: Isolate supplier price movement from purchase volume.
+    formula: sum((actual_unit_cost - standard_unit_cost) * purchased_quantity)
+    grain: property_supplier_product_date
+    sources: [purchase_lines]
+    owner: Purchasing
+    refresh: daily
+    exclusions:
+      - Quantity variance is not included in this metric.
+    reconciliation: actual purchase value reconciles to purchase-line extended value
+    limitations:
+      - Standard cost must be governed and time-valid.
+
+  - id: inventory_variance_value
+    name: Inventory Variance Value
+    domain: inventory
+    purpose: Quantify the financial difference between theoretical and actual consumption.
+    formula: actual_consumption_value - theoretical_consumption_value
+    grain: property_outlet_product_period
+    sources: [pos_sales, inventory_movements]
+    owner: F&B Controls
+    refresh: daily
+    exclusions:
+      - Approved stock transfers are neutralized between locations.
+    reconciliation: opening + receipts - closing - transfers reconciles to actual consumption
+    limitations:
+      - Recipe-master errors can appear as operational variance.
+
+  - id: labour_cost_pct
+    name: Labour Cost %
+    domain: labour
+    purpose: Measure paid labour cost relative to net operating revenue.
+    formula: labour_cost / net_operating_revenue
+    grain: property_outlet_date
+    sources: [labour_shifts, pos_sales, pms_room_nights]
+    owner: Operations
+    refresh: daily
+    exclusions:
+      - Employer taxes may be excluded depending on source availability and must be stated.
+    reconciliation: labour_cost reconciles to shift-level paid cost
+    limitations:
+      - Revenue mix and service model materially affect comparability.
+
+  - id: revenue_per_labour_hour
+    name: Revenue per Labour Hour
+    domain: labour
+    purpose: Measure operating revenue productivity per paid labour hour.
+    formula: net_operating_revenue / paid_labour_hours
+    grain: property_outlet_date
+    sources: [labour_shifts, pos_sales, pms_room_nights]
+    owner: Operations
+    refresh: daily
+    exclusions:
+      - Unpaid break time is excluded from paid_labour_hours.
+    reconciliation: paid_labour_hours reconciles to shift duration less unpaid break
+    limitations:
+      - High productivity can coexist with poor service quality.
+
+  - id: forecast_wape
+    name: Demand Forecast WAPE
+    domain: planning
+    purpose: Measure aggregate demand forecast error relative to actual demand.
+    formula: sum(abs(actual_demand - forecast_demand)) / sum(actual_demand)
+    grain: property_forecast_horizon
+    sources: [pms_room_nights]
+    owner: Revenue Management
+    refresh: daily
+    exclusions:
+      - Periods with zero aggregate actual demand are excluded from WAPE reporting.
+    reconciliation: actual demand reconciles to the realized PMS demand series
+    limitations:
+      - WAPE can hide systematic directional bias and must be paired with bias diagnostics.
