@@ -24,29 +24,30 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ---
 
-## Current implementation — Phase 1
+## Current implementation — Phase 2
 
-Phase 1 establishes the operating-source and trust layer before any dashboard or management conclusion receives credit.
+The platform now proves two separate data-trust boundaries before KPI or dashboard logic receives credit.
 
 ### Implemented now
 
-- seeded synthetic multi-property operating sources;
-- 13 explicit source files across PMS, POS, procurement, inventory, labour and budget;
-- row-level Pydantic contracts;
-- business-key uniqueness controls;
-- PMS room-inventory reconciliation;
-- POS outlet-check ↔ product-mix revenue reconciliation;
-- purchasing ↔ inventory-receipt reconciliation;
-- inventory roll-forward continuity;
-- controlled `margin_leakage` scenario;
-- pytest coverage for arithmetic contracts and scenario behavior;
-- CI reverse test that deliberately corrupts POS product-mix revenue and requires validation to fail;
-- clean-state regeneration and recovery validation.
+- seeded synthetic multi-property operating sources across PMS, POS, procurement, inventory, labour and budget;
+- explicit row, domain, ownership and cross-source contracts;
+- PostgreSQL 16 raw landing schema preserving source values as text;
+- exact CSV → raw PostgreSQL reconciliation using ordered row counts + SHA-256;
+- typed dimensional analytical schema with surrogate keys, PK/FK constraints and grain-specific facts;
+- separate room inventory and room bookings facts to protect denominator grain;
+- reconciliation of **all fact row counts**;
+- reconciliation of material operational quantities and financial totals;
+- business-key lineage checks from raw rows back through analytical dimensions and facts;
+- dimension lineage controls for property, outlet, product, supplier, department, date, segment and channel;
+- CI reverse tests at three levels:
+  1. source contract corruption;
+  2. raw PostgreSQL target mutation;
+  3. analytical fact mutation;
+- deterministic recovery from each controlled failure.
 
 ### Not yet implemented
 
-- PostgreSQL analytical target;
-- dimensional marts;
 - governed KPI materialisation;
 - Power BI / DAX artifacts;
 - diagnostic ranking of margin drivers;
@@ -54,7 +55,6 @@ Phase 1 establishes the operating-source and trust layer before any dashboard or
 - quantified management-action impact.
 
 Those items receive **zero scoring credit** until repository evidence exists.
-
 ---
 
 ## Business scope
@@ -148,7 +148,7 @@ PMS        POS        PROCUREMENT        WORKFORCE        BUDGET
                   MEASURED BUSINESS IMPACT
 ```
 
-The first two layers are implemented. The remaining layers are target architecture until proven otherwise.
+The source-contract, validation and PostgreSQL modelling layers are implemented. KPI, diagnostic, BI and business-impact layers remain target architecture until proven otherwise.
 
 ---
 
@@ -186,77 +186,88 @@ The first two layers are implemented. The remaining layers are target architectu
 
 Every KPI requires a documented definition, grain, source, formula and limitation before it is treated as trusted.
 
-`Controllable Contribution` is deliberately **not finalised** in Phase 1 because shared-cost scope and allocation policy are not yet governed.
+`Controllable Contribution` is deliberately **not finalised** in Phase 2 because shared-cost scope and allocation policy are not yet governed.
 
 ---
 
-## Technical target
+## Technical implementation
 
 | Layer | Implementation | Status |
 |---|---|---|
 | Synthetic operational sources | Python | **implemented** |
-| Validation | Python + explicit contracts | **implemented** |
-| Cross-source reconciliation | Python | **implemented at source layer** |
-| Transformation | Python + SQL | planned |
-| Analytical store | PostgreSQL | planned |
-| Dimensional modelling | star-schema marts | planned |
-| BI | Power BI / DAX | planned |
-| Analytics | Python / statistical diagnostics | planned |
-| Forecasting | baseline-first time-series / ML evaluation | planned |
+| Source validation | Pydantic + cross-source contracts | **implemented** |
+| Raw landing | PostgreSQL 16 | **implemented** |
+| Source → raw reconciliation | row count + canonical SHA-256 | **implemented** |
+| Transformation | SQL + Python orchestration | **implemented** |
+| Dimensional modelling | typed grain-specific facts + dimensions | **implemented** |
+| Raw → analytics validation | counts + quantities + financial + lineage controls | **implemented** |
+| BI | Power BI / DAX | not yet implemented |
+| Analytics | Python / statistical diagnostics | not yet implemented |
+| Forecasting | baseline-first time-series / ML evaluation | not yet implemented |
 | Software Quality | pytest + Ruff | **implemented** |
-| Delivery | GitHub Actions | **implemented for Phase 1** |
-| Documentation | contracts, assumptions, proof matrix | **implemented and evolving** |
-
+| Delivery | Docker Compose + GitHub Actions | **implemented through Phase 2** |
+| Documentation | architecture, model, contracts, assumptions, proof matrix | **implemented and evolving** |
 ---
 
-## Target analytical model
+## Current analytical model
 
 ```text
 DIMENSIONS
 ├── dim_date
 ├── dim_property
 ├── dim_outlet
-├── dim_room_segment
-├── dim_channel
 ├── dim_product
 ├── dim_supplier
-└── dim_department
+├── dim_department
+├── dim_room_segment
+└── dim_channel
 
 FACTS
-├── fact_rooms_daily
-├── fact_pos_sales
+├── fact_room_inventory_daily
+├── fact_room_bookings_daily
+├── fact_pos_outlet_daily
+├── fact_pos_product_daily
+├── fact_purchases_daily
 ├── fact_inventory_daily
-├── fact_purchases
 ├── fact_labour_daily
 └── fact_budget_monthly
 ```
 
-This is a **target**, not current warehouse evidence. The final model must reconcile to its synthetic source systems before downstream KPIs are considered valid.
+Facts remain separated at their natural grains. In particular, room inventory is **property × day**, while booked rooms are **property × day × segment × channel**. Combining them would duplicate inventory denominators and make occupancy unsafe.
 
+See [`docs/data_model.md`](docs/data_model.md) for the grain contract.
 ---
 
-## Reverse test — Phase 1
+## Reverse tests — Phase 2
 
-The current CI proves a source-control failure path:
+The current CI must prove three independent failure paths:
 
 ```text
-seeded clean sources
-        ↓
-source contracts PASS
-        ↓
-mutate POS product-mix revenue only
-        ↓
-POS check ↔ product mix reconciliation FAILS
-        ↓
-regenerate the exact source state
-        ↓
-source contracts PASS
+1. SOURCE CONTRACT
+clean source
+→ mutate POS product-mix revenue
+→ source validation FAIL
+→ regenerate
+→ PASS
+
+2. SOURCE → RAW POSTGRESQL
+source CSV unchanged
+→ mutate raw PostgreSQL POS revenue
+→ exact row/hash reconciliation FAIL
+→ reload raw
+→ PASS
+
+3. RAW → ANALYTICS
+clean raw + clean dimensional build
+→ mutate analytical labour cost only
+→ warehouse validation FAIL
+→ rebuild analytics
+→ PASS
 ```
 
-A happy-path generator without deliberate failure detection would not receive operational-proof credit.
+Warehouse validation does not rely only on global totals. It checks fact row counts, material operational quantities, financial totals, business-key lineage and dimension lineage.
 
-Future phases must add reverse tests for the PostgreSQL target, metric contracts, management conclusions and forecasting.
-
+Future phases must add reverse tests for metric contracts, management conclusions and forecasting.
 ---
 
 ## Local validation
@@ -269,7 +280,13 @@ pytest -q
 ruff check .
 ```
 
-Run the Phase 1 reverse test:
+Run the complete PostgreSQL pipeline:
+
+```bash
+make pipeline
+```
+
+Run the source-contract reverse test:
 
 ```bash
 make reverse-test
@@ -301,10 +318,12 @@ See [`docs/proof_matrix.md`](docs/proof_matrix.md) for implemented versus unimpl
 hospitality-intelligence-platform/
 ├── .github/workflows/ci.yml
 ├── docs/
+├── sql/
 ├── src/hospitality_intelligence/
 ├── tests/
 ├── .env.example
 ├── .gitignore
+├── docker-compose.yml
 ├── Makefile
 ├── pyproject.toml
 └── README.md
@@ -318,7 +337,7 @@ Empty folders are not created for presentation. A directory appears only when it
 
 The repository is **not OFFICIAL**.
 
-Current phase: **Phase 1 — source contracts and reverse-tested synthetic operating data**.
+Current phase: **Phase 2 — reverse-tested PostgreSQL analytical store**.
 
 Officialisation requires:
 
