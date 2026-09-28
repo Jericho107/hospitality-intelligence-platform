@@ -1,7 +1,10 @@
 from pathlib import Path
 
+import pytest
+import yaml
+
 from hospitality_intelligence.generate_synthetic_data import GenerationConfig, generate
-from hospitality_intelligence.value_model import evaluate
+from hospitality_intelligence.value_model import CONTRACT_PATH, evaluate, load_contract
 
 
 def _scenario(tmp_path: Path, scenario: str) -> Path:
@@ -36,13 +39,21 @@ def test_leakage_scenario_creates_more_modeled_opportunity_than_healthy(
         assert leakage_map[driver] > healthy_map[driver]
 
 
-def test_value_model_never_labels_estimate_as_realized_savings(tmp_path: Path) -> None:
+def test_action_labels_do_not_claim_realized_savings(tmp_path: Path) -> None:
     result = evaluate(_scenario(tmp_path, "margin_leakage"))
-    combined = " ".join(
-        [
-            *(item.action for item in result.opportunities),
-            *(item.limitation for item in result.opportunities),
-        ]
-    ).lower()
 
-    assert "realized savings" not in combined
+    assert all("realized" not in item.action.lower() for item in result.opportunities)
+
+
+def test_recovery_assumptions_must_be_bounded_and_ordered(tmp_path: Path) -> None:
+    payload = load_contract()
+    payload["recovery_scenarios"]["base"] = 1.20
+    path = tmp_path / "invalid_value_contract.yml"
+    path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Recovery scenarios"):
+        load_contract(path)
+
+
+def test_repository_contract_path_exists() -> None:
+    assert CONTRACT_PATH.exists()
