@@ -190,7 +190,7 @@ def _allocate_integer(total: int, weights: list[float]) -> list[int]:
 
 
 def _allocate_money(total: float, weights: list[float]) -> list[float]:
-    cents = int(round(total * 100))
+    cents = round(total * 100)
     integer_allocations = _allocate_integer(cents, weights)
     return [value / 100 for value in integer_allocations]
 
