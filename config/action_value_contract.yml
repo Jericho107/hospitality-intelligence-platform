@@ -1,0 +1,41 @@
+scope:
+  property_id: P002
+  analysis_window_days: 20
+  baseline_window_days: 20
+  product_category: beverage
+  labour_department_id: D002
+
+recovery_scenarios:
+  conservative: 0.25
+  base: 0.50
+  stretch: 0.75
+
+labour:
+  overtime_premium_rate: 0.35
+
+actions:
+  purchase_price:
+    title: Reopen beverage supplier pricing and purchase terms
+    owner: Purchasing / F&B
+    measurement_metric: Purchase Price Variance
+    review_window_days: 30
+    limitation: Standard cost is synthetic and Type-1, so modeled recovery is not realized savings.
+  waste:
+    title: Tighten beverage portioning, stock handling and waste logging
+    owner: F&B Management
+    measurement_metric: Waste %
+    review_window_days: 30
+    limitation: Excess waste is benchmarked to the prior internal period and does not prove root cause.
+  overtime:
+    title: Re-align F&B staffing plan to demand and overtime triggers
+    owner: Operations / F&B
+    measurement_metric: Overtime Share
+    review_window_days: 30
+    limitation: Only overtime premium exposure is modeled; service quality and workload constraints are not monetized.
+
+boundaries:
+  - Opportunity estimates are modeled from synthetic operating data.
+  - Modeled recoverable value is not realized client savings.
+  - Recovery rates are scenarios, not predictions.
+  - No annualization is performed by default.
+  - Causal attribution requires a measured intervention.
