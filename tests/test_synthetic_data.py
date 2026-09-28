@@ -48,14 +48,27 @@ def test_generated_sources_pass_contract_validation(
     assert not frames["inventory_daily.csv"].empty
 
 
-def test_margin_leakage_scenario_has_controlled_cost_pressure(
+def test_margin_leakage_scenario_changes_only_documented_operating_pressure(
     tmp_path: Path,
 ) -> None:
-    generate(FIXED_CONFIG, tmp_path)
-    products = pd.read_csv(tmp_path / "products.csv")
-    purchases = pd.read_csv(tmp_path / "purchases_daily.csv")
-    labour = pd.read_csv(tmp_path / "labour_daily.csv")
+    leakage_dir = tmp_path / "leakage"
+    healthy_dir = tmp_path / "healthy"
+    leakage_config = GenerationConfig(
+        days=45,
+        seed=17,
+        anchor_date=date(2026, 9, 1),
+        scenario="margin_leakage",
+    )
+    healthy_config = GenerationConfig(
+        days=45,
+        seed=17,
+        anchor_date=date(2026, 9, 1),
+        scenario="healthy",
+    )
+    generate(leakage_config, leakage_dir)
+    generate(healthy_config, healthy_dir)
 
+    products = pd.read_csv(leakage_dir / "products.csv")
     beverage_ids = set(
         products.loc[
             (products["property_id"] == "P002")
@@ -63,33 +76,95 @@ def test_margin_leakage_scenario_has_controlled_cost_pressure(
             "product_id",
         ]
     )
-    resort_beverage = purchases[
-        (purchases["property_id"] == "P002")
-        & (purchases["product_id"].isin(beverage_ids))
-    ].copy()
-    resort_beverage["date"] = pd.to_datetime(
-        resort_beverage["date"]
+
+    leakage_purchases = pd.read_csv(leakage_dir / "purchases_daily.csv")
+    healthy_purchases = pd.read_csv(healthy_dir / "purchases_daily.csv")
+    leakage_inventory = pd.read_csv(leakage_dir / "inventory_daily.csv")
+    healthy_inventory = pd.read_csv(healthy_dir / "inventory_daily.csv")
+    leakage_labour = pd.read_csv(leakage_dir / "labour_daily.csv")
+    healthy_labour = pd.read_csv(healthy_dir / "labour_daily.csv")
+    leakage_bookings = pd.read_csv(leakage_dir / "pms_bookings_daily.csv")
+    healthy_bookings = pd.read_csv(healthy_dir / "pms_bookings_daily.csv")
+
+    for frame in [
+        leakage_purchases,
+        healthy_purchases,
+        leakage_inventory,
+        healthy_inventory,
+        leakage_labour,
+        healthy_labour,
+        leakage_bookings,
+        healthy_bookings,
+    ]:
+        frame["date"] = pd.to_datetime(frame["date"])
+
+    split = pd.Timestamp(leakage_config.anchor_date) + pd.Timedelta(
+        days=leakage_config.days - 20
     )
-    split = resort_beverage["date"].max() - pd.Timedelta(days=19)
-    early = resort_beverage[
-        resort_beverage["date"] < split
-    ]["unit_cost"].mean()
-    late = resort_beverage[
-        resort_beverage["date"] >= split
-    ]["unit_cost"].mean()
 
-    resort_fnb = labour[
-        (labour["property_id"] == "P002")
-        & (labour["department_id"] == "D002")
+    leakage_beverage = leakage_purchases[
+        (leakage_purchases["property_id"] == "P002")
+        & (leakage_purchases["product_id"].isin(beverage_ids))
+        & (leakage_purchases["date"] >= split)
+    ]
+    healthy_beverage = healthy_purchases[
+        (healthy_purchases["property_id"] == "P002")
+        & (healthy_purchases["product_id"].isin(beverage_ids))
+        & (healthy_purchases["date"] >= split)
+    ]
+    assert (
+        leakage_beverage["unit_cost"].mean()
+        > healthy_beverage["unit_cost"].mean() * 1.08
+    )
+
+    leakage_waste = leakage_inventory[
+        (leakage_inventory["property_id"] == "P002")
+        & (leakage_inventory["product_id"].isin(beverage_ids))
+        & (leakage_inventory["date"] >= split)
+        & (leakage_inventory["usage_qty"] > 0)
     ].copy()
-    resort_fnb["date"] = pd.to_datetime(resort_fnb["date"])
-    labour_split = resort_fnb["date"].max() - pd.Timedelta(days=19)
-    early_overtime = resort_fnb[
-        resort_fnb["date"] < labour_split
-    ]["overtime_hours"].mean()
-    late_overtime = resort_fnb[
-        resort_fnb["date"] >= labour_split
-    ]["overtime_hours"].mean()
+    healthy_waste = healthy_inventory[
+        (healthy_inventory["property_id"] == "P002")
+        & (healthy_inventory["product_id"].isin(beverage_ids))
+        & (healthy_inventory["date"] >= split)
+        & (healthy_inventory["usage_qty"] > 0)
+    ].copy()
+    leakage_waste["waste_rate"] = (
+        leakage_waste["waste_qty"] / leakage_waste["usage_qty"]
+    )
+    healthy_waste["waste_rate"] = (
+        healthy_waste["waste_qty"] / healthy_waste["usage_qty"]
+    )
+    assert (
+        leakage_waste["waste_rate"].mean()
+        > healthy_waste["waste_rate"].mean() + 0.04
+    )
 
-    assert late > early * 1.07
-    assert late_overtime > early_overtime
+    leakage_fnb = leakage_labour[
+        (leakage_labour["property_id"] == "P002")
+        & (leakage_labour["department_id"] == "D002")
+        & (leakage_labour["date"] >= split)
+    ]
+    healthy_fnb = healthy_labour[
+        (healthy_labour["property_id"] == "P002")
+        & (healthy_labour["department_id"] == "D002")
+        & (healthy_labour["date"] >= split)
+    ]
+    assert (
+        leakage_fnb["actual_hours"].mean()
+        > healthy_fnb["actual_hours"].mean() * 1.10
+    )
+    assert (
+        leakage_fnb["overtime_hours"].mean()
+        > healthy_fnb["overtime_hours"].mean()
+    )
+
+    leakage_rooms = leakage_bookings[
+        (leakage_bookings["property_id"] == "P002")
+        & (leakage_bookings["date"] >= split)
+    ]["rooms_sold"].sum()
+    healthy_rooms = healthy_bookings[
+        (healthy_bookings["property_id"] == "P002")
+        & (healthy_bookings["date"] >= split)
+    ]["rooms_sold"].sum()
+    assert leakage_rooms >= healthy_rooms
