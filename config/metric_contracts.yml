@@ -1,0 +1,195 @@
+metrics:
+  - id: occupancy_pct
+    name: Occupancy %
+    domain: rooms
+    grain: property_day
+    formula: rooms_sold / rooms_available
+    sources: [fact_room_inventory_daily, fact_room_bookings_daily]
+    owner: Revenue Management
+    purpose: Measure sold room demand against sellable room inventory.
+    exclusions:
+      - No out-of-order inventory model exists in the current synthetic source.
+    reconciliation: Recompute rooms_sold and rooms_available independently from facts.
+    limitations:
+      - Does not measure rate quality, channel cost, or contribution.
+    status: implemented
+
+  - id: adr
+    name: ADR
+    domain: rooms
+    grain: property_day
+    formula: room_revenue / rooms_sold
+    sources: [fact_room_bookings_daily]
+    owner: Revenue Management
+    purpose: Measure realized room revenue per sold room.
+    exclusions:
+      - Tax and fee decomposition are not represented in the current source.
+    reconciliation: Recompute room_revenue and rooms_sold independently from facts.
+    limitations:
+      - ADR can improve while profitability deteriorates.
+    status: implemented
+
+  - id: revpar
+    name: RevPAR
+    domain: rooms
+    grain: property_day
+    formula: room_revenue / rooms_available
+    sources: [fact_room_inventory_daily, fact_room_bookings_daily]
+    owner: Revenue Management
+    purpose: Measure room revenue productivity against available inventory.
+    exclusions:
+      - Distribution acquisition cost is not represented in the current source.
+    reconciliation: Recompute room_revenue and rooms_available independently from facts.
+    limitations:
+      - This is gross operating room productivity, not net RevPAR.
+    status: implemented
+
+  - id: net_fnb_revenue
+    name: Net F&B Revenue
+    domain: fnb
+    grain: property_outlet_day
+    formula: gross_revenue - discount_amount
+    sources: [fact_pos_outlet_daily]
+    owner: F&B Management
+    purpose: Measure outlet revenue after discounting.
+    exclusions:
+      - Tax, service charge and tips are outside the current synthetic POS model.
+    reconciliation: Net revenue must equal the governed POS outlet fact and gross less discount.
+    limitations:
+      - Revenue alone does not imply contribution.
+    status: implemented
+
+  - id: average_check
+    name: Average Check
+    domain: fnb
+    grain: property_outlet_day
+    formula: net_revenue / covers
+    sources: [fact_pos_outlet_daily]
+    owner: F&B Management
+    purpose: Measure net outlet revenue per cover.
+    exclusions:
+      - Zero-cover rows return NULL rather than an artificial zero.
+    reconciliation: Recompute net revenue and covers independently from the POS fact.
+    limitations:
+      - Mix and outlet concept affect comparability.
+    status: implemented
+
+  - id: discount_rate
+    name: Discount Rate
+    domain: fnb
+    grain: property_outlet_day
+    formula: discount_amount / gross_revenue
+    sources: [fact_pos_outlet_daily]
+    owner: F&B Management
+    purpose: Measure revenue dilution attributable to recorded discounts.
+    exclusions:
+      - Zero gross-revenue rows return NULL.
+    reconciliation: Recompute gross and discount values independently from the POS fact.
+    limitations:
+      - Does not distinguish authorized promotion from uncontrolled discounting.
+    status: implemented
+
+  - id: purchase_price_variance
+    name: Purchase Price Variance
+    domain: purchasing
+    grain: property_product_supplier_day
+    formula: actual_purchase_cost - (quantity * standard_unit_cost)
+    sources: [fact_purchases_daily, dim_product]
+    owner: Purchasing
+    purpose: Isolate purchase-cost variance attributable to price versus governed standard cost.
+    exclusions:
+      - Quantity variance is intentionally excluded.
+    reconciliation: Recompute standard purchase cost from quantity and product standard cost.
+    limitations:
+      - Current standard cost is Type-1 and not historized.
+    status: implemented
+
+  - id: waste_cost
+    name: Waste Cost
+    domain: inventory
+    grain: property_product_day
+    formula: waste_qty * weighted_unit_cost
+    sources: [fact_inventory_daily]
+    owner: F&B Controls
+    purpose: Quantify the direct inventory value of recorded waste.
+    exclusions:
+      - Does not allocate labour or disposal cost.
+    reconciliation: Recompute from waste quantity and weighted unit cost.
+    limitations:
+      - Accuracy depends on the quality of recorded waste quantities.
+    status: implemented
+
+  - id: waste_pct
+    name: Waste %
+    domain: inventory
+    grain: property_product_day
+    formula: waste_qty / (usage_qty + waste_qty)
+    sources: [fact_inventory_daily]
+    owner: F&B Controls
+    purpose: Measure waste as a share of recorded product depletion.
+    exclusions:
+      - Rows with zero total depletion return NULL.
+    reconciliation: Recompute from usage and waste quantities.
+    limitations:
+      - Recipe or usage-recording errors can distort interpretation.
+    status: implemented
+
+  - id: labour_cost_per_hour
+    name: Labour Cost per Hour
+    domain: labour
+    grain: property_department_day
+    formula: labour_cost / actual_hours
+    sources: [fact_labour_daily]
+    owner: Operations
+    purpose: Monitor paid labour cost intensity independently from revenue allocation.
+    exclusions:
+      - Rows with zero actual hours return NULL.
+    reconciliation: Recompute from labour cost and actual hours.
+    limitations:
+      - This is not Labour Cost % and should not be interpreted as productivity.
+    status: implemented
+
+  - id: overtime_share
+    name: Overtime Share
+    domain: labour
+    grain: property_department_day
+    formula: overtime_hours / actual_hours
+    sources: [fact_labour_daily]
+    owner: Operations
+    purpose: Monitor the share of actual labour hours delivered as overtime.
+    exclusions:
+      - Rows with zero actual hours return NULL.
+    reconciliation: Recompute overtime and actual hours from the labour fact.
+    limitations:
+      - Overtime can be operationally justified during peaks and is not inherently negative.
+    status: implemented
+
+  - id: labour_cost_pct
+    name: Labour Cost %
+    domain: labour
+    grain: property_department_period
+    formula: labour_cost / governed_department_revenue
+    sources: [fact_labour_daily]
+    owner: Operations
+    purpose: Measure labour cost against an explicitly governed department-revenue denominator.
+    exclusions:
+      - Not materialized until department-revenue allocation is governed.
+    reconciliation: Pending denominator governance.
+    limitations:
+      - Incorrect department revenue allocation would make the metric misleading.
+    status: deferred
+
+  - id: controllable_contribution
+    name: Controllable Contribution
+    domain: management
+    grain: property_department_period
+    formula: governed_revenue - explicitly_scoped_controllable_costs
+    sources: []
+    owner: General Management
+    purpose: Measure contribution after a governed set of controllable costs.
+    exclusions:
+      - Shared-cost allocation policy is not yet defined.
+    reconciliation: Pending cost-scope governance.
+    limitations:
+      - Publishing this metric before cost-scope governance would overstate analytical certainty.
+    status: deferred
