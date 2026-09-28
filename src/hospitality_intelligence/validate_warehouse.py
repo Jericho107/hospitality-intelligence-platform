@@ -224,8 +224,8 @@ LINEAGE_CONTROLS = (
             EXCEPT
             SELECT d.full_date, p.property_id, f.rooms_available
             FROM analytics.fact_room_inventory_daily f
-            JOIN analytics.dim_date d USING (date_key)
-            JOIN analytics.dim_property p USING (property_key)
+            JOIN analytics.dim_date d ON d.date_key = f.date_key
+            JOIN analytics.dim_property p ON p.property_key = f.property_key
         ) diff
         """,
     ),
@@ -250,10 +250,10 @@ LINEAGE_CONTROLS = (
                 f.rooms_sold,
                 f.room_revenue
             FROM analytics.fact_room_bookings_daily f
-            JOIN analytics.dim_date d USING (date_key)
-            JOIN analytics.dim_property p USING (property_key)
-            JOIN analytics.dim_room_segment s USING (segment_key)
-            JOIN analytics.dim_channel c USING (channel_key)
+            JOIN analytics.dim_date d ON d.date_key = f.date_key
+            JOIN analytics.dim_property p ON p.property_key = f.property_key
+            JOIN analytics.dim_room_segment s ON s.segment_key = f.segment_key
+            JOIN analytics.dim_channel c ON c.channel_key = f.channel_key
         ) diff
         """,
     ),
@@ -276,9 +276,9 @@ LINEAGE_CONTROLS = (
                 f.covers,
                 f.net_revenue
             FROM analytics.fact_pos_outlet_daily f
-            JOIN analytics.dim_date d USING (date_key)
-            JOIN analytics.dim_property p USING (property_key)
-            JOIN analytics.dim_outlet o USING (outlet_key)
+            JOIN analytics.dim_date d ON d.date_key = f.date_key
+            JOIN analytics.dim_property p ON p.property_key = f.property_key
+            JOIN analytics.dim_outlet o ON o.outlet_key = f.outlet_key
         ) diff
         """,
     ),
@@ -303,10 +303,10 @@ LINEAGE_CONTROLS = (
                 f.units_sold,
                 f.net_revenue
             FROM analytics.fact_pos_product_daily f
-            JOIN analytics.dim_date d USING (date_key)
-            JOIN analytics.dim_property p USING (property_key)
-            JOIN analytics.dim_outlet o USING (outlet_key)
-            JOIN analytics.dim_product pr USING (product_key)
+            JOIN analytics.dim_date d ON d.date_key = f.date_key
+            JOIN analytics.dim_property p ON p.property_key = f.property_key
+            JOIN analytics.dim_outlet o ON o.outlet_key = f.outlet_key
+            JOIN analytics.dim_product pr ON pr.product_key = f.product_key
         ) diff
         """,
     ),
@@ -331,10 +331,10 @@ LINEAGE_CONTROLS = (
                 f.quantity,
                 f.purchase_cost
             FROM analytics.fact_purchases_daily f
-            JOIN analytics.dim_date d USING (date_key)
-            JOIN analytics.dim_property p USING (property_key)
-            JOIN analytics.dim_product pr USING (product_key)
-            JOIN analytics.dim_supplier s USING (supplier_key)
+            JOIN analytics.dim_date d ON d.date_key = f.date_key
+            JOIN analytics.dim_property p ON p.property_key = f.property_key
+            JOIN analytics.dim_product pr ON pr.product_key = f.product_key
+            JOIN analytics.dim_supplier s ON s.supplier_key = f.supplier_key
         ) diff
         """,
     ),
@@ -359,9 +359,9 @@ LINEAGE_CONTROLS = (
                 f.waste_qty,
                 f.inventory_value
             FROM analytics.fact_inventory_daily f
-            JOIN analytics.dim_date d USING (date_key)
-            JOIN analytics.dim_property p USING (property_key)
-            JOIN analytics.dim_product pr USING (product_key)
+            JOIN analytics.dim_date d ON d.date_key = f.date_key
+            JOIN analytics.dim_property p ON p.property_key = f.property_key
+            JOIN analytics.dim_product pr ON pr.product_key = f.product_key
         ) diff
         """,
     ),
@@ -386,9 +386,9 @@ LINEAGE_CONTROLS = (
                 f.overtime_hours,
                 f.labour_cost
             FROM analytics.fact_labour_daily f
-            JOIN analytics.dim_date d USING (date_key)
-            JOIN analytics.dim_property p USING (property_key)
-            JOIN analytics.dim_department dep USING (department_key)
+            JOIN analytics.dim_date d ON d.date_key = f.date_key
+            JOIN analytics.dim_property p ON p.property_key = f.property_key
+            JOIN analytics.dim_department dep ON dep.department_key = f.department_key
         ) diff
         """,
     ),
@@ -411,9 +411,9 @@ LINEAGE_CONTROLS = (
                 f.budget_revenue,
                 f.budget_cost
             FROM analytics.fact_budget_monthly f
-            JOIN analytics.dim_date d USING (date_key)
-            JOIN analytics.dim_property p USING (property_key)
-            JOIN analytics.dim_department dep USING (department_key)
+            JOIN analytics.dim_date d ON d.date_key = f.date_key
+            JOIN analytics.dim_property p ON p.property_key = f.property_key
+            JOIN analytics.dim_department dep ON dep.department_key = f.department_key
         ) diff
         """,
     ),
@@ -472,13 +472,13 @@ DIMENSION_LINEAGE_CONTROLS = (
                 EXCEPT
                 SELECT o.outlet_id, p.property_id, o.outlet_name, o.outlet_type
                 FROM analytics.dim_outlet o
-                JOIN analytics.dim_property p USING (property_key)
+                JOIN analytics.dim_property p ON p.property_key = o.property_key
             )
             UNION ALL
             (
                 SELECT o.outlet_id, p.property_id, o.outlet_name, o.outlet_type
                 FROM analytics.dim_outlet o
-                JOIN analytics.dim_property p USING (property_key)
+                JOIN analytics.dim_property p ON p.property_key = o.property_key
                 EXCEPT
                 SELECT outlet_id, property_id, outlet_name, outlet_type
                 FROM raw.outlets
@@ -512,8 +512,8 @@ DIMENSION_LINEAGE_CONTROLS = (
                     pr.standard_unit_cost,
                     pr.inventory_usage_per_unit
                 FROM analytics.dim_product pr
-                JOIN analytics.dim_outlet o USING (outlet_key)
-                JOIN analytics.dim_property p USING (property_key)
+                JOIN analytics.dim_outlet o ON o.outlet_key = pr.outlet_key
+                JOIN analytics.dim_property p ON p.property_key = pr.property_key
             )
             UNION ALL
             (
@@ -527,8 +527,8 @@ DIMENSION_LINEAGE_CONTROLS = (
                     pr.standard_unit_cost,
                     pr.inventory_usage_per_unit
                 FROM analytics.dim_product pr
-                JOIN analytics.dim_outlet o USING (outlet_key)
-                JOIN analytics.dim_property p USING (property_key)
+                JOIN analytics.dim_outlet o ON o.outlet_key = pr.outlet_key
+                JOIN analytics.dim_property p ON p.property_key = pr.property_key
                 EXCEPT
                 SELECT
                     product_id,
