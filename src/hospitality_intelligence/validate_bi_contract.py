@@ -68,14 +68,18 @@ def dax_measure_names(path: Path = DAX_PATH) -> set[str]:
     return set(DAX_MEASURE_RE.findall(path.read_text(encoding="utf-8")))
 
 
-def validate_bi_contract() -> BIContract:
-    bi = load_bi_contract()
-    metrics = load_metric_contracts()
+def validate_bi_contract(
+    bi_path: Path = BI_CONTRACT,
+    dax_path: Path = DAX_PATH,
+    metric_path: Path | None = None,
+) -> BIContract:
+    bi = load_bi_contract(bi_path)
+    metrics = load_metric_contracts(metric_path) if metric_path else load_metric_contracts()
 
     metric_by_id = {metric.id: metric for metric in metrics.metrics}
     bi_names = {measure.name for measure in bi.measures}
     bi_metric_ids = {measure.metric_id for measure in bi.measures}
-    dax_names = dax_measure_names()
+    dax_names = dax_measure_names(dax_path)
 
     unknown_metric_ids = bi_metric_ids - set(metric_by_id)
     if unknown_metric_ids:
