@@ -1,0 +1,34 @@
+measures:
+  - metric_id: occupancy_pct
+    dax_measure: Occupancy %
+    table: Rooms KPI
+  - metric_id: adr
+    dax_measure: ADR
+    table: Rooms KPI
+  - metric_id: revpar
+    dax_measure: RevPAR
+    table: Rooms KPI
+  - metric_id: net_fnb_revenue
+    dax_measure: Net F&B Revenue
+    table: F&B KPI
+  - metric_id: average_check
+    dax_measure: Average Check
+    table: F&B KPI
+  - metric_id: discount_rate
+    dax_measure: Discount Rate
+    table: F&B KPI
+  - metric_id: purchase_price_variance
+    dax_measure: Purchase Price Variance
+    table: Purchasing KPI
+  - metric_id: waste_cost
+    dax_measure: Waste Cost
+    table: Inventory KPI
+  - metric_id: waste_pct
+    dax_measure: Waste %
+    table: Inventory KPI
+  - metric_id: labour_cost_per_hour
+    dax_measure: Labour Cost per Hour
+    table: Labour KPI
+  - metric_id: overtime_share
+    dax_measure: Overtime Share
+    table: Labour KPI
