@@ -1,0 +1,96 @@
+sources:
+  - id: pms_room_nights
+    system: Property Management System
+    grain: property_id + stay_date + channel_id
+    primary_key: [property_id, stay_date, channel_id]
+    required_fields:
+      - property_id
+      - stay_date
+      - channel_id
+      - available_room_nights
+      - occupied_room_nights
+      - net_room_revenue
+      - distribution_cost
+    time_field: stay_date
+    financial_fields: [net_room_revenue, distribution_cost]
+    pii_allowed: false
+
+  - id: pos_sales
+    system: Point of Sale
+    grain: transaction_line_id
+    primary_key: [transaction_line_id]
+    required_fields:
+      - transaction_line_id
+      - property_id
+      - outlet_id
+      - business_date
+      - product_id
+      - quantity
+      - net_revenue
+    time_field: business_date
+    financial_fields: [net_revenue]
+    pii_allowed: false
+
+  - id: purchase_lines
+    system: Purchasing
+    grain: purchase_line_id
+    primary_key: [purchase_line_id]
+    required_fields:
+      - purchase_line_id
+      - property_id
+      - supplier_id
+      - product_id
+      - purchase_date
+      - purchased_quantity
+      - actual_unit_cost
+      - standard_unit_cost
+    time_field: purchase_date
+    financial_fields: [actual_unit_cost, standard_unit_cost]
+    pii_allowed: false
+
+  - id: inventory_movements
+    system: Inventory
+    grain: inventory_movement_id
+    primary_key: [inventory_movement_id]
+    required_fields:
+      - inventory_movement_id
+      - property_id
+      - outlet_id
+      - product_id
+      - movement_date
+      - movement_type
+      - quantity
+      - unit_cost
+    time_field: movement_date
+    financial_fields: [unit_cost]
+    pii_allowed: false
+
+  - id: labour_shifts
+    system: Workforce Management
+    grain: shift_id
+    primary_key: [shift_id]
+    required_fields:
+      - shift_id
+      - property_id
+      - outlet_id
+      - role_id
+      - business_date
+      - paid_labour_hours
+      - labour_cost
+    time_field: business_date
+    financial_fields: [labour_cost]
+    pii_allowed: false
+
+  - id: budget
+    system: Finance Planning
+    grain: property_id + outlet_id + budget_date + account_code
+    primary_key: [property_id, outlet_id, budget_date, account_code]
+    required_fields:
+      - property_id
+      - outlet_id
+      - budget_date
+      - account_code
+      - budget_amount
+    time_field: budget_date
+    financial_fields: [budget_amount]
+    pii_allowed: false
