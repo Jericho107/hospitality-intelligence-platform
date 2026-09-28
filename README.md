@@ -26,7 +26,7 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ## Current implementation — Phase 5 (BI semantic layer)
 
-The platform now proves two separate data-trust boundaries before KPI or dashboard logic receives credit.
+The platform now enforces six fail-closed evidence boundaries from synthetic source contracts through the governed BI contract layer.
 
 ### Implemented now
 
@@ -221,7 +221,7 @@ Still deliberately excluded from BI until their upstream contracts are implement
 | Analytics | diagnostic benchmark implemented; broader statistical analysis pending | **partial** |
 | Forecasting | baseline-first time-series / ML evaluation | not yet implemented |
 | Software Quality | pytest + Ruff | **implemented** |
-| Delivery | Docker Compose + GitHub Actions | **implemented through Phase 2** |
+| Delivery | Docker Compose + GitHub Actions | **implemented through Phase 5 CI** |
 | Documentation | architecture, model, contracts, assumptions, proof matrix | **implemented and evolving** |
 ---
 
@@ -254,9 +254,9 @@ Facts remain separated at their natural grains. In particular, room inventory is
 See [`docs/data_model.md`](docs/data_model.md) for the grain contract.
 ---
 
-## Reverse tests — Phase 2
+## Reverse tests — current validation stack
 
-The current CI must prove three independent failure paths:
+The current CI must prove six independent failure paths:
 
 ```text
 1. SOURCE CONTRACT
@@ -288,11 +288,25 @@ clean analytical facts
 → metric validation FAIL
 → rebuild KPI marts
 → PASS
+
+5. DIAGNOSTIC TRUTH CONTROL
+healthy vs margin_leakage
+→ recover purchase-cost + waste + overtime pressure
+→ PASS
+healthy vs healthy
+→ zero adverse drivers
+→ PASS
+
+6. BI SEMANTIC / REPORT CONTRACT
+clean TMDL + PBIR/report contract
+→ BI validation PASS
+→ inject deferred Controllable Contribution into a visual contract
+→ BI validation FAIL
+→ restore clean contract
+→ PASS
 ```
 
-Warehouse validation does not rely only on global totals. KPI validation independently recalculates implemented metrics from facts and rejects drift in the materialized decision layer.
-
-The BI layer now adds a sixth contract boundary: a forbidden/deferred measure reference must fail closed before report delivery.
+Warehouse validation does not rely only on global totals. KPI validation independently recalculates implemented metrics from facts and rejects drift in the materialized decision layer. Diagnostic validation includes a negative control, and BI validation fails closed when a deferred measure is introduced into the report contract.
 
 Future phases must still add runtime Power BI visual validation, management-action/value proof and forecasting.
 ---
