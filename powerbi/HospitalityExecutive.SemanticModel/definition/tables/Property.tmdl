@@ -1,0 +1,42 @@
+table Property
+
+    column property_key
+        dataType: int64
+        isHidden
+        isKey
+        sourceColumn: property_key
+        summarizeBy: none
+
+    column 'Property ID'
+        dataType: string
+        sourceColumn: property_id
+        summarizeBy: none
+
+    column Property
+        dataType: string
+        sourceColumn: property_name
+        summarizeBy: none
+
+    column Archetype
+        dataType: string
+        sourceColumn: archetype
+        summarizeBy: none
+
+    column City
+        dataType: string
+        sourceColumn: city
+        summarizeBy: none
+
+    column 'Room Count'
+        dataType: int64
+        sourceColumn: rooms_count
+        summarizeBy: none
+
+    partition Property = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="dim_property"]}[Data]
+                in
+                    Data

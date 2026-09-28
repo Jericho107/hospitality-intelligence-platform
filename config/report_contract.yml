@@ -1,0 +1,95 @@
+status: semantic_model_implemented_visuals_pending
+audience:
+  - General Manager
+  - CFO
+  - Revenue Manager
+  - F&B Director
+global_slicers:
+  - Property
+  - Date
+pages:
+  - id: executive_overview
+    title: Executive Overview
+    question: Where is performance changing and which operating pressure requires management attention first?
+    visuals:
+      - id: occupancy_card
+        type: card
+        measures: [Occupancy %]
+      - id: revpar_card
+        type: card
+        measures: [RevPAR]
+      - id: room_revenue_card
+        type: card
+        measures: [Room Revenue]
+      - id: fnb_revenue_card
+        type: card
+        measures: [Net F&B Revenue]
+      - id: waste_cost_card
+        type: card
+        measures: [Waste Cost]
+      - id: labour_cost_card
+        type: card
+        measures: [Labour Cost]
+      - id: rooms_trend
+        type: line
+        measures: [Room Revenue, RevPAR]
+      - id: cost_pressure
+        type: clustered_bar
+        measures: [Purchase Price Variance, Waste Cost, Labour Cost]
+
+  - id: rooms_performance
+    title: Rooms Performance
+    question: Is room revenue growth coming from demand, rate, or both?
+    visuals:
+      - id: room_kpis
+        type: cards
+        measures: [Rooms Sold, Occupancy %, ADR, RevPAR]
+      - id: room_revenue_trend
+        type: line
+        measures: [Room Revenue]
+      - id: occupancy_trend
+        type: line
+        measures: [Occupancy %]
+      - id: property_room_compare
+        type: matrix
+        measures: [Rooms Sold, Room Revenue, Occupancy %, ADR, RevPAR]
+
+  - id: fnb_inventory
+    title: F&B and Inventory
+    question: Are sales gains being diluted by discounting or recorded waste?
+    visuals:
+      - id: fnb_kpis
+        type: cards
+        measures: [Net F&B Revenue, Average Check, Discount Rate, Waste %]
+      - id: fnb_revenue_trend
+        type: line
+        measures: [Net F&B Revenue]
+      - id: outlet_compare
+        type: matrix
+        measures: [Covers, Net F&B Revenue, Average Check, Discount Rate]
+      - id: waste_pressure
+        type: clustered_bar
+        measures: [Waste Qty, Waste Cost, Waste %]
+
+  - id: procurement_labour
+    title: Procurement and Labour
+    question: Is controllable cost pressure coming from purchasing or labour intensity?
+    visuals:
+      - id: procurement_kpis
+        type: cards
+        measures: [Actual Purchase Cost, Purchase Price Variance]
+      - id: labour_kpis
+        type: cards
+        measures: [Labour Cost, Labour Cost per Hour, Overtime Share]
+      - id: supplier_pressure
+        type: matrix
+        measures: [Actual Purchase Cost, Standard Purchase Cost, Purchase Price Variance]
+      - id: department_labour
+        type: matrix
+        measures: [Actual Hours, Overtime Hours, Labour Cost, Labour Cost per Hour, Overtime Share]
+
+forbidden_measures:
+  - Labour Cost %
+  - Controllable Contribution
+  - Contribution Margin %
+  - Forecast Error

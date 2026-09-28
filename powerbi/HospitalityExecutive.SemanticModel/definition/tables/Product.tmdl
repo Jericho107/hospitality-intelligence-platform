@@ -1,0 +1,50 @@
+table Product
+
+    column product_key
+        dataType: int64
+        isHidden
+        isKey
+        sourceColumn: product_key
+        summarizeBy: none
+
+    column outlet_key
+        dataType: int64
+        isHidden
+        sourceColumn: outlet_key
+        summarizeBy: none
+
+    column property_key
+        dataType: int64
+        isHidden
+        sourceColumn: property_key
+        summarizeBy: none
+
+    column 'Product ID'
+        dataType: string
+        sourceColumn: product_id
+        summarizeBy: none
+
+    column Product
+        dataType: string
+        sourceColumn: product_name
+        summarizeBy: none
+
+    column Category
+        dataType: string
+        sourceColumn: category
+        summarizeBy: none
+
+    column 'Standard Unit Cost'
+        dataType: decimal
+        sourceColumn: standard_unit_cost
+        formatString: #,0.00
+        summarizeBy: none
+
+    partition Product = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="dim_product"]}[Data]
+                in
+                    Data

@@ -193,3 +193,26 @@ jobs:
       - name: Prove diagnostics do not invent adverse drivers
         run: |
           python -m hospitality_intelligence.diagnostics             --baseline-dir data/benchmark/healthy             --candidate-dir data/benchmark/healthy             --require-none
+
+      - name: Validate Power BI semantic and report contracts
+        run: python -m hospitality_intelligence.bi_contracts
+
+      - name: Inject forbidden BI measure reference
+        run: |
+          python -m hospitality_intelligence.bi_failure_injection \
+            --source config/report_contract.yml \
+            --output /tmp/report_contract_broken.yml \
+            --case unknown_measure
+
+      - name: Prove BI contract validation fails closed
+        shell: bash
+        run: |
+          if python -m hospitality_intelligence.bi_contracts \
+            --contract /tmp/report_contract_broken.yml; then
+            echo "Expected BI contract validation to fail for forbidden metric."
+            exit 1
+          fi
+          echo "Forbidden BI measure reference detected."
+
+      - name: Revalidate clean BI contract
+        run: python -m hospitality_intelligence.bi_contracts

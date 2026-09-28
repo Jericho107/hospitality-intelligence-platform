@@ -1,0 +1,14 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "rooms_performance",
+  "displayName": "Rooms Performance",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "annotations": [
+    {
+      "name": "decisionQuestion",
+      "value": "Is room revenue growth coming from demand, rate, or both?"
+    }
+  ]
+}

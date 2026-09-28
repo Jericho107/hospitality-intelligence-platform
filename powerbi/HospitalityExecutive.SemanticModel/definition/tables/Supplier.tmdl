@@ -1,0 +1,32 @@
+table Supplier
+
+    column supplier_key
+        dataType: int64
+        isHidden
+        isKey
+        sourceColumn: supplier_key
+        summarizeBy: none
+
+    column 'Supplier ID'
+        dataType: string
+        sourceColumn: supplier_id
+        summarizeBy: none
+
+    column Supplier
+        dataType: string
+        sourceColumn: supplier_name
+        summarizeBy: none
+
+    column Category
+        dataType: string
+        sourceColumn: category
+        summarizeBy: none
+
+    partition Supplier = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="dim_supplier"]}[Data]
+                in
+                    Data

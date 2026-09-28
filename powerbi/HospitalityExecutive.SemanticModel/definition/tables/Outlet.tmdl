@@ -1,0 +1,38 @@
+table Outlet
+
+    column outlet_key
+        dataType: int64
+        isHidden
+        isKey
+        sourceColumn: outlet_key
+        summarizeBy: none
+
+    column property_key
+        dataType: int64
+        isHidden
+        sourceColumn: property_key
+        summarizeBy: none
+
+    column 'Outlet ID'
+        dataType: string
+        sourceColumn: outlet_id
+        summarizeBy: none
+
+    column Outlet
+        dataType: string
+        sourceColumn: outlet_name
+        summarizeBy: none
+
+    column 'Outlet Type'
+        dataType: string
+        sourceColumn: outlet_type
+        summarizeBy: none
+
+    partition Outlet = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="dim_outlet"]}[Data]
+                in
+                    Data

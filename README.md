@@ -24,9 +24,9 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ---
 
-## Current implementation — Phase 4
+## Current implementation — Phase 5 (BI semantic layer)
 
-The platform now proves two separate data-trust boundaries before KPI or dashboard logic receives credit.
+The platform now enforces six fail-closed evidence boundaries from synthetic source contracts through the governed BI contract layer.
 
 ### Implemented now
 
@@ -46,17 +46,24 @@ The platform now proves two separate data-trust boundaries before KPI or dashboa
 - paired healthy-versus-leakage diagnostic benchmark;
 - ranked detection of injected beverage purchase-cost, beverage-waste and F&B overtime pressure;
 - negative control proving the diagnostic engine does not report adverse drivers on healthy-versus-healthy data;
-- CI reverse tests at five levels:
+- source-controlled Power BI semantic model in TMDL;
+- governed DAX measure layer mapped back to implemented KPI contracts;
+- PBIR report/page scaffold for four management decision surfaces;
+- machine-readable report contract preventing unknown or deferred measures from entering BI;
+- CI reverse tests at six levels:
   1. source contract corruption;
   2. raw PostgreSQL target mutation;
   3. analytical fact mutation;
   4. materialized KPI corruption;
   5. diagnostic truth / false-positive control;
+  6. BI semantic/report-contract corruption;
 - deterministic recovery from each controlled failure.
 
 ### Not yet implemented
 
-- Power BI / DAX artifacts;
+- rendered PBIR visual containers;
+- Power BI Desktop open/save runtime validation;
+- pixel-level decision UX and accessibility review in a rendered report;
 - production-style diagnostic alert thresholds or causal attribution;
 - forecast models;
 - quantified management-action impact.
@@ -155,7 +162,7 @@ PMS        POS        PROCUREMENT        WORKFORCE        BUDGET
                   MEASURED BUSINESS IMPACT
 ```
 
-The source-contract, PostgreSQL, KPI-governance and synthetic diagnostic-validation layers are implemented. BI, forecasting and business-impact layers remain target architecture until proven otherwise.
+The source-contract, PostgreSQL, KPI-governance, synthetic diagnostic-validation and BI semantic-contract layers are implemented. The rendered Power BI report, forecasting and business-impact layers remain target architecture until proven otherwise.
 
 ---
 
@@ -174,26 +181,23 @@ The source-contract, PostgreSQL, KPI-governance and synthetic diagnostic-validat
 
 ---
 
-## Governed KPI families
+## Governed BI measures
 
 ### Rooms
-`Occupancy` · `ADR` · `RevPAR` · `Room Revenue` · `Channel Mix` · `Segment Mix`
+`Rooms Available` · `Rooms Sold` · `Room Revenue` · `Occupancy %` · `ADR` · `RevPAR`
 
 ### Food & Beverage
-`Net F&B Revenue` · `Average Check` · `Cover Mix` · `Discount Rate` · `Product Mix` · `Outlet Contribution`
+`Covers` · `F&B Gross Revenue` · `Discounts` · `Net F&B Revenue` · `Average Check` · `Discount Rate`
 
 ### Inventory & Purchasing
-`Actual Product Cost` · `Waste Cost` · `Waste %` · `Purchase Price Variance` · `Usage Variance`
+`Purchase Quantity` · `Actual Purchase Cost` · `Standard Purchase Cost` · `Purchase Price Variance` · `Usage Qty` · `Waste Qty` · `Waste Cost` · `Waste %`
 
 ### Labour
-`Scheduled Hours` · `Actual Hours` · `Overtime Hours` · `Labour Cost` · `Labour Cost %`
+`Actual Hours` · `Overtime Hours` · `Labour Cost` · `Labour Cost per Hour` · `Overtime Share`
 
-### Management
-`Budget Variance` · `Controllable Contribution` · `Contribution Margin %` · `Forecast Error`
+Ratios are recomputed in DAX from additive components; the BI layer does not SUM precomputed percentage/ratio columns.
 
-Every KPI requires a documented definition, grain, source, formula and limitation before it is treated as trusted.
-
-`Controllable Contribution` is deliberately **not finalised** in Phase 2 because shared-cost scope and allocation policy are not yet governed.
+Still deliberately excluded from BI until their upstream contracts are implemented: `Labour Cost %`, `Controllable Contribution`, `Contribution Margin %`, and `Forecast Error`.
 
 ---
 
@@ -211,11 +215,13 @@ Every KPI requires a documented definition, grain, source, formula and limitatio
 | KPI governance | machine-readable contracts | **implemented** |
 | KPI materialisation | SQL marts + independent reconciliation | **implemented** |
 | Diagnostic validation | paired scenario benchmark + negative control | **implemented** |
-| BI | Power BI / DAX | not yet implemented |
+| BI semantic model | TMDL + governed DAX measures | **implemented** |
+| BI report contract | PBIR page scaffold + machine-readable visual contract | **implemented** |
+| BI runtime / decision UX | Power BI Desktop render/open/save + visual QA | not yet implemented |
 | Analytics | diagnostic benchmark implemented; broader statistical analysis pending | **partial** |
 | Forecasting | baseline-first time-series / ML evaluation | not yet implemented |
 | Software Quality | pytest + Ruff | **implemented** |
-| Delivery | Docker Compose + GitHub Actions | **implemented through Phase 2** |
+| Delivery | Docker Compose + GitHub Actions | **implemented through Phase 5 CI** |
 | Documentation | architecture, model, contracts, assumptions, proof matrix | **implemented and evolving** |
 ---
 
@@ -248,9 +254,9 @@ Facts remain separated at their natural grains. In particular, room inventory is
 See [`docs/data_model.md`](docs/data_model.md) for the grain contract.
 ---
 
-## Reverse tests — Phase 2
+## Reverse tests — current validation stack
 
-The current CI must prove three independent failure paths:
+The current CI must prove six independent failure paths:
 
 ```text
 1. SOURCE CONTRACT
@@ -282,11 +288,27 @@ clean analytical facts
 → metric validation FAIL
 → rebuild KPI marts
 → PASS
+
+5. DIAGNOSTIC TRUTH CONTROL
+healthy vs margin_leakage
+→ recover purchase-cost + waste + overtime pressure
+→ PASS
+healthy vs healthy
+→ zero adverse drivers
+→ PASS
+
+6. BI SEMANTIC / REPORT CONTRACT
+clean TMDL + PBIR/report contract
+→ BI validation PASS
+→ inject deferred Controllable Contribution into a visual contract
+→ BI validation FAIL
+→ restore clean contract
+→ PASS
 ```
 
-Warehouse validation does not rely only on global totals. KPI validation independently recalculates implemented metrics from facts and rejects drift in the materialized decision layer.
+Warehouse validation does not rely only on global totals. KPI validation independently recalculates implemented metrics from facts and rejects drift in the materialized decision layer. Diagnostic validation includes a negative control, and BI validation fails closed when a deferred measure is introduced into the report contract.
 
-Future phases must add reverse tests for management conclusions, Power BI behavior and forecasting.
+Future phases must still add runtime Power BI visual validation, management-action/value proof and forecasting.
 ---
 
 ## Local validation
@@ -309,6 +331,12 @@ Run the source-contract reverse test:
 
 ```bash
 make reverse-test
+```
+
+Validate the Power BI semantic/report contracts:
+
+```bash
+make bi-validate
 ```
 
 ---
@@ -338,6 +366,7 @@ hospitality-intelligence-platform/
 ├── .github/workflows/ci.yml
 ├── docs/
 ├── sql/
+├── powerbi/
 ├── src/hospitality_intelligence/
 ├── tests/
 ├── .env.example
@@ -356,7 +385,7 @@ Empty folders are not created for presentation. A directory appears only when it
 
 The repository is **not OFFICIAL**.
 
-Current phase: **Phase 4 — diagnostic benchmark validated against controlled synthetic truth**.
+Current phase: **Phase 5 — Power BI semantic/report contracts implemented; Desktop runtime validation still pending**.
 
 Officialisation requires:
 

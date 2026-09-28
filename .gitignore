@@ -8,3 +8,6 @@ __pycache__/
 *.log
 output/
 data/generated/
+
+**/.pbi/localSettings.json
+**/.pbi/cache.abf

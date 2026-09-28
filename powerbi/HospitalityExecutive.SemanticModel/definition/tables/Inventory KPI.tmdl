@@ -1,0 +1,78 @@
+table 'Inventory KPI'
+
+    measure 'Usage Qty' = SUM('Inventory KPI'[usage_qty])
+        formatString: #,0.00
+        displayFolder: Inventory
+
+    measure 'Waste Qty' = SUM('Inventory KPI'[waste_qty])
+        formatString: #,0.00
+        displayFolder: Inventory
+
+    measure 'Waste Cost' = SUM('Inventory KPI'[waste_cost])
+        formatString: #,0.00
+        displayFolder: Inventory
+
+    measure 'Depletion Qty' = [Usage Qty] + [Waste Qty]
+        formatString: #,0.00
+        displayFolder: Inventory
+
+    measure 'Waste %' = DIVIDE([Waste Qty], [Depletion Qty])
+        formatString: 0.0%
+        displayFolder: Inventory
+
+    column date_key
+        dataType: int64
+        isHidden
+        sourceColumn: date_key
+        summarizeBy: none
+
+    column property_key
+        dataType: int64
+        isHidden
+        sourceColumn: property_key
+        summarizeBy: none
+
+    column product_key
+        dataType: int64
+        isHidden
+        sourceColumn: product_key
+        summarizeBy: none
+
+    column usage_qty
+        dataType: decimal
+        isHidden
+        sourceColumn: usage_qty
+        summarizeBy: sum
+
+    column waste_qty
+        dataType: decimal
+        isHidden
+        sourceColumn: waste_qty
+        summarizeBy: sum
+
+    column weighted_unit_cost
+        dataType: decimal
+        isHidden
+        sourceColumn: weighted_unit_cost
+        summarizeBy: none
+
+    column waste_cost
+        dataType: decimal
+        isHidden
+        sourceColumn: waste_cost
+        summarizeBy: sum
+
+    column waste_pct
+        dataType: decimal
+        isHidden
+        sourceColumn: waste_pct
+        summarizeBy: none
+
+    partition 'Inventory KPI' = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="kpi_inventory_daily"]}[Data]
+                in
+                    Data

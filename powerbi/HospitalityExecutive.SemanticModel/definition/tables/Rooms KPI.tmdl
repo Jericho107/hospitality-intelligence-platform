@@ -1,0 +1,82 @@
+table 'Rooms KPI'
+
+    measure 'Rooms Available' = SUM('Rooms KPI'[rooms_available])
+        formatString: #,0
+        displayFolder: Rooms
+
+    measure 'Rooms Sold' = SUM('Rooms KPI'[rooms_sold])
+        formatString: #,0
+        displayFolder: Rooms
+
+    measure 'Room Revenue' = SUM('Rooms KPI'[room_revenue])
+        formatString: #,0.00
+        displayFolder: Rooms
+
+    measure 'Occupancy %' = DIVIDE([Rooms Sold], [Rooms Available])
+        formatString: 0.0%
+        displayFolder: Rooms
+
+    measure ADR = DIVIDE([Room Revenue], [Rooms Sold])
+        formatString: #,0.00
+        displayFolder: Rooms
+
+    measure RevPAR = DIVIDE([Room Revenue], [Rooms Available])
+        formatString: #,0.00
+        displayFolder: Rooms
+
+    column date_key
+        dataType: int64
+        isHidden
+        sourceColumn: date_key
+        summarizeBy: none
+
+    column property_key
+        dataType: int64
+        isHidden
+        sourceColumn: property_key
+        summarizeBy: none
+
+    column rooms_available
+        dataType: int64
+        isHidden
+        sourceColumn: rooms_available
+        summarizeBy: sum
+
+    column rooms_sold
+        dataType: int64
+        isHidden
+        sourceColumn: rooms_sold
+        summarizeBy: sum
+
+    column room_revenue
+        dataType: decimal
+        isHidden
+        sourceColumn: room_revenue
+        summarizeBy: sum
+
+    column occupancy_pct
+        dataType: decimal
+        isHidden
+        sourceColumn: occupancy_pct
+        summarizeBy: none
+
+    column adr
+        dataType: decimal
+        isHidden
+        sourceColumn: adr
+        summarizeBy: none
+
+    column revpar
+        dataType: decimal
+        isHidden
+        sourceColumn: revpar
+        summarizeBy: none
+
+    partition 'Rooms KPI' = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="kpi_rooms_daily"]}[Data]
+                in
+                    Data

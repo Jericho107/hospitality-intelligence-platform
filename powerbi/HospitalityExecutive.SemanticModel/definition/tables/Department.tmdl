@@ -1,0 +1,27 @@
+table Department
+
+    column department_key
+        dataType: int64
+        isHidden
+        isKey
+        sourceColumn: department_key
+        summarizeBy: none
+
+    column 'Department ID'
+        dataType: string
+        sourceColumn: department_id
+        summarizeBy: none
+
+    column Department
+        dataType: string
+        sourceColumn: department_name
+        summarizeBy: none
+
+    partition Department = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="dim_department"]}[Data]
+                in
+                    Data

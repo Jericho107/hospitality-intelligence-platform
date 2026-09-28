@@ -1,0 +1,78 @@
+table 'Labour KPI'
+
+    measure 'Actual Hours' = SUM('Labour KPI'[actual_hours])
+        formatString: #,0.00
+        displayFolder: Labour
+
+    measure 'Overtime Hours' = SUM('Labour KPI'[overtime_hours])
+        formatString: #,0.00
+        displayFolder: Labour
+
+    measure 'Labour Cost' = SUM('Labour KPI'[labour_cost])
+        formatString: #,0.00
+        displayFolder: Labour
+
+    measure 'Labour Cost per Hour' = DIVIDE([Labour Cost], [Actual Hours])
+        formatString: #,0.00
+        displayFolder: Labour
+
+    measure 'Overtime Share' = DIVIDE([Overtime Hours], [Actual Hours])
+        formatString: 0.0%
+        displayFolder: Labour
+
+    column date_key
+        dataType: int64
+        isHidden
+        sourceColumn: date_key
+        summarizeBy: none
+
+    column property_key
+        dataType: int64
+        isHidden
+        sourceColumn: property_key
+        summarizeBy: none
+
+    column department_key
+        dataType: int64
+        isHidden
+        sourceColumn: department_key
+        summarizeBy: none
+
+    column actual_hours
+        dataType: decimal
+        isHidden
+        sourceColumn: actual_hours
+        summarizeBy: sum
+
+    column overtime_hours
+        dataType: decimal
+        isHidden
+        sourceColumn: overtime_hours
+        summarizeBy: sum
+
+    column labour_cost
+        dataType: decimal
+        isHidden
+        sourceColumn: labour_cost
+        summarizeBy: sum
+
+    column labour_cost_per_hour
+        dataType: decimal
+        isHidden
+        sourceColumn: labour_cost_per_hour
+        summarizeBy: none
+
+    column overtime_share
+        dataType: decimal
+        isHidden
+        sourceColumn: overtime_share
+        summarizeBy: none
+
+    partition 'Labour KPI' = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="kpi_labour_daily"]}[Data]
+                in
+                    Data
