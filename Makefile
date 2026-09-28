@@ -1,4 +1,4 @@
-.PHONY: install lint test generate validate up down ingest reconcile transform warehouse-validate pipeline reverse-test clean
+.PHONY: install lint test generate validate up down ingest reconcile transform warehouse-validate metric-contracts metrics metric-validate pipeline reverse-test clean
 
 install:
 	python -m pip install --upgrade pip
@@ -39,7 +39,16 @@ transform:
 warehouse-validate:
 	python -m hospitality_intelligence.validate_warehouse
 
-pipeline: generate validate up ingest reconcile transform warehouse-validate
+metric-contracts:
+	python -m hospitality_intelligence.metric_contracts
+
+metrics:
+	python -m hospitality_intelligence.build_metrics
+
+metric-validate:
+	python -m hospitality_intelligence.validate_metrics
+
+pipeline: generate validate up ingest reconcile transform warehouse-validate metric-contracts metrics metric-validate
 
 reverse-test: generate validate
 	python -m hospitality_intelligence.failure_injection \
