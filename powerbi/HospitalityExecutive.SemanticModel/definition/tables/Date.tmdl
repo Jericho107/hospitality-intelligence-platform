@@ -1,0 +1,49 @@
+table Date
+
+    column date_key
+        dataType: int64
+        isHidden
+        isKey
+        sourceColumn: date_key
+        summarizeBy: none
+
+    column Date
+        dataType: dateTime
+        sourceColumn: full_date
+        formatString: yyyy-MM-dd
+        summarizeBy: none
+
+    column Year
+        dataType: int64
+        sourceColumn: year_number
+        summarizeBy: none
+
+    column 'Month Number'
+        dataType: int64
+        sourceColumn: month_number
+        summarizeBy: none
+
+    column 'Month Start'
+        dataType: dateTime
+        sourceColumn: month_start
+        formatString: yyyy-MM-dd
+        summarizeBy: none
+
+    column 'Day Name'
+        dataType: string
+        sourceColumn: day_name
+        summarizeBy: none
+
+    column 'Is Weekend'
+        dataType: boolean
+        sourceColumn: is_weekend
+        summarizeBy: none
+
+    partition Date = m
+        mode: import
+        source =
+                let
+                    Source = PostgreSQL.Database(Server, Database, [CreateNavigationProperties=false]),
+                    Data = Source{[Schema="analytics", Item="dim_date"]}[Data]
+                in
+                    Data
