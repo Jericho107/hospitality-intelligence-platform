@@ -315,12 +315,6 @@ def generate(config: GenerationConfig, output_dir: Path) -> None:
             if property_id == "P002" and _is_leakage_period(current, config):
                 covers = round(covers * 1.06)
             discount_rate = 0.035 + rng.uniform(0, 0.025)
-            if (
-                property_id == "P002"
-                and outlet_type == "bar"
-                and _is_leakage_period(current, config)
-            ):
-                discount_rate += 0.025
             net_revenue = _round_money(
                 covers * avg_check * rng.uniform(0.94, 1.06)
             )
