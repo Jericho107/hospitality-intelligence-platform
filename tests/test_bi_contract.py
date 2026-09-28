@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import pytest
+import yaml
 from pydantic import ValidationError
 
 from hospitality_intelligence.validate_bi_contract import (
@@ -34,3 +37,30 @@ def test_executive_page_uses_only_governed_measure_names() -> None:
     )
 
     assert set(executive.measures).issubset(known)
+
+
+def test_deferred_metric_cannot_be_exposed_in_bi(tmp_path: Path) -> None:
+    contract = load_bi_contract()
+    payload = contract.model_dump()
+    payload["measures"].append(
+        {
+            "name": "Controllable Contribution",
+            "metric_id": "controllable_contribution",
+            "display_folder": "Management",
+            "format": "$#,0",
+            "executive": False,
+        }
+    )
+    bi_path = tmp_path / "bi_contract.yml"
+    bi_path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+
+    dax_path = tmp_path / "measures.dax"
+    dax_path.write_text(
+        (Path(__file__).resolve().parents[1] / "powerbi" / "dax" / "measures.dax")
+        .read_text(encoding="utf-8")
+        + "\n[Controllable Contribution] = 0\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="Deferred metrics exposed in BI"):
+        validate_bi_contract(bi_path=bi_path, dax_path=dax_path)
