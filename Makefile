@@ -89,3 +89,6 @@ reverse-test: generate validate
 
 clean:
 	rm -rf data/sample
+
+value-model:
+	python -m hospitality_intelligence.value_model --data-dir data/sample
