@@ -261,3 +261,23 @@ jobs:
               --candidate hist_gradient_boosting \
               --expect accepted
           done
+
+
+      - name: Build healthy management-opportunity model
+        run: |
+          python -m hospitality_intelligence.value_model \
+            --data-dir data/benchmark/healthy \
+            --output /tmp/value_healthy.json
+
+      - name: Build leakage management-opportunity model
+        run: |
+          python -m hospitality_intelligence.value_model \
+            --data-dir data/benchmark/leakage \
+            --output /tmp/value_leakage.json
+
+      - name: Prove opportunity model reacts to controlled leakage
+        run: |
+          python -m hospitality_intelligence.validate_value_model \
+            --healthy /tmp/value_healthy.json \
+            --leakage /tmp/value_leakage.json \
+            --minimum-total-ratio 2.0
