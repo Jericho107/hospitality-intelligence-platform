@@ -11,9 +11,10 @@ This matrix distinguishes implemented evidence from planned architecture.
 | POS product mix reconciles to outlet checks | outlet-day revenue reconciliation | CI injects a product-mix mismatch and requires failure | implemented |
 | Purchases reconcile to inventory receipts | product/day quantity reconciliation | mismatched receipts fail validation | implemented |
 | Inventory roll-forward is continuous | prior closing vs next opening | broken continuity fails validation | implemented |
-| Scenario contains controlled margin pressure | generator + matched healthy/leakage scenario test | same seed/anchor must show the documented purchase, waste, labour and demand deltas | implemented |
-| PostgreSQL analytical target is reconciled | target architecture | source-to-target reconciliation | not yet implemented |
-| Governed star schema exists | SQL marts | grain + FK + reconciliation tests | not yet implemented |
+| Scenario contains controlled margin pressure | matched healthy/leakage test | same seed/anchor proves purchase, waste, labour and demand deltas | implemented |
+| PostgreSQL raw landing matches source files | exact row count + canonical ordered SHA-256 | CI mutates raw POS revenue and requires reconciliation failure | implemented |
+| Governed dimensional model exists | typed SQL dimensions and grain-specific facts | all fact counts and material totals reconcile to raw | implemented |
+| Raw-to-analytics transformation detects drift | warehouse validator | CI mutates labour fact cost and requires validation failure | implemented |
 | Power BI layer is decision-ready | dashboard artifacts + KPI evidence | metric/visual QA | not yet implemented |
 | Forecasting improves on a baseline | modelling artifacts | naive baseline comparison | not yet implemented |
 | Business actions have quantified impact | action model | assumptions + sensitivity | not yet implemented |

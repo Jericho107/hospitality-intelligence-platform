@@ -14,10 +14,32 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  HOSPITALITY_DB_HOST: localhost
+  HOSPITALITY_DB_PORT: "5432"
+  HOSPITALITY_DB_NAME: hospitality_intelligence
+  HOSPITALITY_DB_USER: hospitality
+  HOSPITALITY_DB_PASSWORD: local_only
+
 jobs:
-  validate-foundation:
+  validate-platform:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: hospitality
+          POSTGRES_PASSWORD: local_only
+          POSTGRES_DB: hospitality_intelligence
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hospitality -d hospitality_intelligence"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
@@ -45,39 +67,81 @@ jobs:
 
       - name: Generate seeded source system
         run: |
-          python -m hospitality_intelligence.generate_synthetic_data \
-            --output-dir data/sample \
-            --days 60 \
-            --seed 42 \
-            --anchor 2026-09-01T00:00:00+00:00 \
-            --scenario margin_leakage
+          python -m hospitality_intelligence.generate_synthetic_data             --output-dir data/sample             --days 60             --seed 42             --anchor 2026-09-01T00:00:00+00:00             --scenario margin_leakage
 
       - name: Validate clean source contracts
         run: >-
           python -m hospitality_intelligence.validate_sources
           --data-dir data/sample
 
-      - name: Inject controlled cross-source mismatch
+      - name: Inject controlled source mismatch
         run: |
-          python -m hospitality_intelligence.failure_injection \
-            --data-dir data/sample \
-            --case pos_revenue_mismatch
+          python -m hospitality_intelligence.failure_injection             --data-dir data/sample             --case pos_revenue_mismatch
 
       - name: Prove source validation fails closed
         shell: bash
         run: |
           if python -m hospitality_intelligence.validate_sources --data-dir data/sample; then
-            echo "Expected validation to fail after controlled mismatch."
+            echo "Expected source validation to fail after controlled mismatch."
             exit 1
           fi
-          echo "Controlled mismatch detected as expected."
+          echo "Controlled source mismatch detected."
 
-      - name: Restore source state and prove recovery
+      - name: Restore source state
         run: |
-          python -m hospitality_intelligence.generate_synthetic_data \
-            --output-dir data/sample \
-            --days 60 \
-            --seed 42 \
-            --anchor 2026-09-01T00:00:00+00:00 \
-            --scenario margin_leakage
+          python -m hospitality_intelligence.generate_synthetic_data             --output-dir data/sample             --days 60             --seed 42             --anchor 2026-09-01T00:00:00+00:00             --scenario margin_leakage
           python -m hospitality_intelligence.validate_sources --data-dir data/sample
+
+      - name: Load PostgreSQL raw landing
+        run: python -m hospitality_intelligence.ingest --data-dir data/sample
+
+      - name: Prove exact source-to-raw reconciliation
+        run: >-
+          python -m hospitality_intelligence.reconciliation
+          --data-dir data/sample
+
+      - name: Build typed dimensional analytics store
+        run: python -m hospitality_intelligence.transform
+
+      - name: Validate all fact counts and material totals
+        run: python -m hospitality_intelligence.validate_warehouse
+
+      - name: Mutate raw target without changing source
+        run: >-
+          python -m hospitality_intelligence.warehouse_failure_injection
+          --case raw_pos_revenue
+
+      - name: Prove source-to-raw reconciliation catches mutation
+        shell: bash
+        run: |
+          if python -m hospitality_intelligence.reconciliation --data-dir data/sample; then
+            echo "Expected raw reconciliation to fail after target mutation."
+            exit 1
+          fi
+          echo "Raw target mutation detected."
+
+      - name: Restore raw landing and rebuild analytics
+        run: |
+          python -m hospitality_intelligence.ingest --data-dir data/sample
+          python -m hospitality_intelligence.reconciliation --data-dir data/sample
+          python -m hospitality_intelligence.transform
+          python -m hospitality_intelligence.validate_warehouse
+
+      - name: Mutate analytical fact without changing raw
+        run: >-
+          python -m hospitality_intelligence.warehouse_failure_injection
+          --case fact_labour_cost
+
+      - name: Prove warehouse validation catches fact mutation
+        shell: bash
+        run: |
+          if python -m hospitality_intelligence.validate_warehouse; then
+            echo "Expected warehouse validation to fail after fact mutation."
+            exit 1
+          fi
+          echo "Analytical fact mutation detected."
+
+      - name: Rebuild analytics and prove final recovery
+        run: |
+          python -m hospitality_intelligence.transform
+          python -m hospitality_intelligence.validate_warehouse
