@@ -1,0 +1,17 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/2.1.0/schema.json",
+  "themeCollection": {},
+  "reportSource": "Default",
+  "settings": {
+    "isPersistentUserStateDisabled": true,
+    "exportDataMode": "AllowSummarized",
+    "useEnhancedTooltips": true,
+    "pagesPosition": "Bottom"
+  },
+  "annotations": [
+    {
+      "name": "pretoriaBiStatus",
+      "value": "Phase 5 semantic/report scaffold; visual containers pending runtime validation"
+    }
+  ]
+}
