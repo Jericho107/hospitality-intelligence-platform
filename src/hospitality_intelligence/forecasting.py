@@ -35,11 +35,11 @@ class Evaluation:
     accepted_on_test: bool
     baseline_validation: Metrics
     candidate_validation: Metrics
-    baseline_test: Metrics
-    candidate_test: Metrics
+    baseline_test: Metrics | None
+    candidate_test: Metrics | None
     validation_wape_improvement: float
-    test_wape_improvement: float
-    worst_property_wape_regression: float
+    test_wape_improvement: float | None
+    worst_property_wape_regression: float | None
     property_test: dict[str, dict[str, float]]
 
 
@@ -228,8 +228,10 @@ def _metrics(actual: pd.Series, predicted: pd.Series) -> Metrics:
 
 
 def _improvement(baseline: float, candidate: float) -> float:
-    if baseline <= 0:
-        raise ValueError("Baseline metric must be positive")
+    if baseline < 0 or candidate < 0:
+        raise ValueError("Metrics must be non-negative")
+    if baseline == 0:
+        return 0.0 if candidate == 0 else float("-inf")
     return (baseline - candidate) / baseline
 
 
@@ -242,15 +244,15 @@ def _predict(
         return pd.Series(0.0, index=frame.index)
     if model is None:
         raise ValueError("Model is required for ML candidate")
-    values = model.predict(frame)
-    return pd.Series(values, index=frame.index).clip(lower=0)
+    values = pd.Series(model.predict(frame), index=frame.index)
+    return values.clip(lower=0, upper=frame["rooms_available"])
 
 
 def evaluate(
     data_dir: Path,
     candidate: CandidateName = "hist_gradient_boosting",
 ) -> Evaluation:
-    """Select on validation, refit if selected, then evaluate untouched test."""
+    """Select on validation and only then unlock the untouched final test."""
 
     contract = load_contract()
     data = load_daily_demand(data_dir)
@@ -258,52 +260,66 @@ def evaluate(
     train, validation, test = temporal_split(frame, contract)
 
     baseline_validation_pred = validation["lag_7"]
-    baseline_test_pred = test["lag_7"]
     baseline_validation = _metrics(validation["rooms_sold"], baseline_validation_pred)
-    baseline_test = _metrics(test["rooms_sold"], baseline_test_pred)
 
     if candidate == "zero":
         validation_pred = _predict(candidate, None, validation)
-        test_pred = _predict(candidate, None, test)
     else:
         model = build_model(contract)
         model.fit(train, train["rooms_sold"])
         validation_pred = _predict(candidate, model, validation)
 
-        accepted_for_refit = _improvement(
-            baseline_validation.wape,
-            _metrics(validation["rooms_sold"], validation_pred).wape,
-        ) >= float(contract["acceptance"]["minimum_validation_wape_improvement"])
-
-        if accepted_for_refit:
-            refit = build_model(contract)
-            train_validation = pd.concat([train, validation], ignore_index=True)
-            refit.fit(train_validation, train_validation["rooms_sold"])
-            test_pred = _predict(candidate, refit, test)
-        else:
-            test_pred = _predict("zero", None, test)
-
     candidate_validation = _metrics(validation["rooms_sold"], validation_pred)
-    candidate_test = _metrics(test["rooms_sold"], test_pred)
     validation_improvement = _improvement(
         baseline_validation.wape, candidate_validation.wape
     )
-    test_improvement = _improvement(baseline_test.wape, candidate_test.wape)
 
     acceptance = contract["acceptance"]
     selected = validation_improvement >= float(
         acceptance["minimum_validation_wape_improvement"]
     )
 
+    if not selected:
+        return Evaluation(
+            candidate=candidate,
+            selected_on_validation=False,
+            accepted_on_test=False,
+            baseline_validation=baseline_validation,
+            candidate_validation=candidate_validation,
+            baseline_test=None,
+            candidate_test=None,
+            validation_wape_improvement=validation_improvement,
+            test_wape_improvement=None,
+            worst_property_wape_regression=None,
+            property_test={},
+        )
+
+    if candidate == "zero":
+        raise AssertionError("Zero candidate cannot reach refit after selection")
+
+    refit = build_model(contract)
+    train_validation = pd.concat([train, validation], ignore_index=True)
+    refit.fit(train_validation, train_validation["rooms_sold"])
+
+    baseline_test_pred = test["lag_7"]
+    test_pred = _predict(candidate, refit, test)
+    baseline_test = _metrics(test["rooms_sold"], baseline_test_pred)
+    candidate_test = _metrics(test["rooms_sold"], test_pred)
+    test_improvement = _improvement(baseline_test.wape, candidate_test.wape)
+
     property_test: dict[str, dict[str, float]] = {}
     worst_regression = 0.0
-    for property_id, rows in test.assign(
+    evaluated = test.assign(
         baseline_prediction=baseline_test_pred,
         candidate_prediction=test_pred,
-    ).groupby("property_id"):
+    )
+    for property_id, rows in evaluated.groupby("property_id"):
         base = _metrics(rows["rooms_sold"], rows["baseline_prediction"])
         cand = _metrics(rows["rooms_sold"], rows["candidate_prediction"])
-        regression = max(0.0, (cand.wape - base.wape) / base.wape)
+        if base.wape == 0:
+            regression = 0.0 if cand.wape == 0 else float("inf")
+        else:
+            regression = max(0.0, (cand.wape - base.wape) / base.wape)
         worst_regression = max(worst_regression, regression)
         property_test[str(property_id)] = {
             "baseline_wape": base.wape,
@@ -312,8 +328,7 @@ def evaluate(
         }
 
     accepted_test = (
-        selected
-        and test_improvement
+        test_improvement
         >= float(acceptance["minimum_test_wape_improvement"])
         and worst_regression
         <= float(acceptance["maximum_property_wape_regression"])
@@ -322,7 +337,7 @@ def evaluate(
 
     return Evaluation(
         candidate=candidate,
-        selected_on_validation=selected,
+        selected_on_validation=True,
         accepted_on_test=accepted_test,
         baseline_validation=baseline_validation,
         candidate_validation=candidate_validation,
@@ -333,7 +348,6 @@ def evaluate(
         worst_property_wape_regression=worst_regression,
         property_test=property_test,
     )
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate governed room-demand forecast.")
