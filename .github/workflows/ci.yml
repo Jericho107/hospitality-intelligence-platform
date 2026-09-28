@@ -24,7 +24,7 @@ env:
 jobs:
   validate-platform:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
 
     services:
       postgres:
@@ -75,8 +75,10 @@ jobs:
           --data-dir data/sample
 
       - name: Inject controlled source mismatch
-        run: |
-          python -m hospitality_intelligence.failure_injection             --data-dir data/sample             --case pos_revenue_mismatch
+        run: >-
+          python -m hospitality_intelligence.failure_injection
+          --data-dir data/sample
+          --case pos_revenue_mismatch
 
       - name: Prove source validation fails closed
         shell: bash
@@ -141,7 +143,35 @@ jobs:
           fi
           echo "Analytical fact mutation detected."
 
-      - name: Rebuild analytics and prove final recovery
+      - name: Rebuild analytics and prove warehouse recovery
         run: |
           python -m hospitality_intelligence.transform
           python -m hospitality_intelligence.validate_warehouse
+
+      - name: Validate KPI contracts
+        run: python -m hospitality_intelligence.metric_contracts
+
+      - name: Build governed KPI marts
+        run: python -m hospitality_intelligence.build_metrics
+
+      - name: Prove KPI marts reconcile to analytical facts
+        run: python -m hospitality_intelligence.validate_metrics
+
+      - name: Mutate materialized ADR without changing facts
+        run: >-
+          python -m hospitality_intelligence.metric_failure_injection
+          --case rooms_adr
+
+      - name: Prove KPI validation catches metric corruption
+        shell: bash
+        run: |
+          if python -m hospitality_intelligence.validate_metrics; then
+            echo "Expected KPI validation to fail after ADR mutation."
+            exit 1
+          fi
+          echo "Materialized KPI corruption detected."
+
+      - name: Rebuild KPI marts and prove final recovery
+        run: |
+          python -m hospitality_intelligence.build_metrics
+          python -m hospitality_intelligence.validate_metrics
