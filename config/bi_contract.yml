@@ -1,0 +1,135 @@
+measures:
+  - name: Occupancy %
+    metric_id: occupancy_pct
+    display_folder: Rooms
+    format: "0.0%"
+    executive: true
+  - name: ADR
+    metric_id: adr
+    display_folder: Rooms
+    format: "$#,0.00"
+    executive: true
+  - name: RevPAR
+    metric_id: revpar
+    display_folder: Rooms
+    format: "$#,0.00"
+    executive: true
+  - name: Net F&B Revenue
+    metric_id: net_fnb_revenue
+    display_folder: Food & Beverage
+    format: "$#,0"
+    executive: true
+  - name: Average Check
+    metric_id: average_check
+    display_folder: Food & Beverage
+    format: "$#,0.00"
+    executive: false
+  - name: Discount Rate
+    metric_id: discount_rate
+    display_folder: Food & Beverage
+    format: "0.0%"
+    executive: false
+  - name: Purchase Price Variance
+    metric_id: purchase_price_variance
+    display_folder: Purchasing
+    format: "$#,0"
+    executive: true
+  - name: Waste Cost
+    metric_id: waste_cost
+    display_folder: Inventory
+    format: "$#,0"
+    executive: true
+  - name: Waste %
+    metric_id: waste_pct
+    display_folder: Inventory
+    format: "0.0%"
+    executive: false
+  - name: Labour Cost per Hour
+    metric_id: labour_cost_per_hour
+    display_folder: Labour
+    format: "$#,0.00"
+    executive: false
+  - name: Overtime Share
+    metric_id: overtime_share
+    display_folder: Labour
+    format: "0.0%"
+    executive: true
+
+deferred_metrics:
+  - labour_cost_pct
+  - controllable_contribution
+
+pages:
+  - id: executive_command_center
+    title: Executive Command Center
+    audience: General Manager / Owner / CFO
+    decision_question: Where is operating pressure emerging, and which area deserves management attention first?
+    measures:
+      - Occupancy %
+      - ADR
+      - RevPAR
+      - Net F&B Revenue
+      - Purchase Price Variance
+      - Waste Cost
+      - Overtime Share
+    visuals:
+      - type: kpi_strip
+        purpose: Show current operating state without mixing incompatible grains.
+      - type: variance_matrix
+        purpose: Compare properties and operating domains using governed measures only.
+      - type: trend_small_multiples
+        purpose: Separate structural movement from one-day noise.
+      - type: diagnostic_callout
+        purpose: Surface validated adverse-driver evidence without claiming causality.
+
+  - id: rooms_revenue
+    title: Rooms & Revenue
+    audience: General Manager / Revenue Manager
+    decision_question: Is room-demand growth translating into healthy revenue productivity?
+    measures:
+      - Occupancy %
+      - ADR
+      - RevPAR
+    visuals:
+      - type: trend
+        purpose: Track occupancy, ADR and RevPAR over time.
+      - type: property_comparison
+        purpose: Compare property-level performance at common grain.
+      - type: channel_segment_context
+        purpose: Explain mix context without duplicating inventory denominators.
+
+  - id: fnb_margin_leakage
+    title: F&B Leakage
+    audience: F&B Director / Executive Chef / Controller
+    decision_question: Is F&B topline improvement being diluted by purchasing, waste or discount pressure?
+    measures:
+      - Net F&B Revenue
+      - Average Check
+      - Discount Rate
+      - Purchase Price Variance
+      - Waste Cost
+      - Waste %
+    visuals:
+      - type: outlet_scorecard
+        purpose: Compare revenue and leakage indicators by outlet.
+      - type: product_supplier_variance
+        purpose: Isolate purchase-price pressure by product and supplier.
+      - type: waste_matrix
+        purpose: Identify where waste quantity and value concentrate.
+
+  - id: labour_operations
+    title: Labour & Operations
+    audience: General Manager / Operations Director
+    decision_question: Where is labour intensity increasing faster than operating demand?
+    measures:
+      - Labour Cost per Hour
+      - Overtime Share
+      - Occupancy %
+      - Net F&B Revenue
+    visuals:
+      - type: labour_trend
+        purpose: Track overtime and cost intensity over time.
+      - type: demand_context
+        purpose: Compare labour movement with rooms and F&B demand context.
+      - type: department_matrix
+        purpose: Localize operational pressure without inventing Labour Cost %.
