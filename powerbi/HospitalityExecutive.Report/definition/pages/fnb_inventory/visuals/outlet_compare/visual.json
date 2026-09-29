@@ -83,11 +83,11 @@
                       "Entity": "Outlet"
                     }
                   },
-                  "Property": "outlet_name"
+                  "Property": "Outlet"
                 }
               },
-              "queryRef": "Outlet.outlet_name",
-              "nativeQueryRef": "outlet_name",
+              "queryRef": "Outlet.Outlet",
+              "nativeQueryRef": "Outlet",
               "active": true
             }
           ]
