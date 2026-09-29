@@ -1,0 +1,69 @@
+version: 1
+report: Hospitality Executive
+audience:
+  - General Manager
+  - F&B Director
+  - Revenue Manager
+  - Finance / Controller
+global_filters:
+  - dim_date.full_date
+  - dim_property.property_name
+pages:
+  - id: executive_overview
+    title: Executive Overview
+    decision_question: Where is operating performance changing, and which pressure deserves management attention first?
+    visuals:
+      - type: kpi
+        measure: Occupancy %
+      - type: kpi
+        measure: ADR
+      - type: kpi
+        measure: RevPAR
+      - type: kpi
+        measure: Net F&B Revenue
+      - type: kpi
+        measure: Waste Cost
+      - type: kpi
+        measure: Overtime Share
+      - type: line
+        axis: dim_date.full_date
+        measures: [RevPAR, Net F&B Revenue]
+      - type: matrix
+        rows: [dim_property.property_name]
+        measures: [Purchase Price Variance, Waste Cost, Overtime Share]
+  - id: rooms_performance
+    title: Rooms Performance
+    decision_question: Is room revenue growth coming from demand, rate, or both?
+    visuals:
+      - type: line
+        axis: dim_date.full_date
+        measures: [Occupancy %, ADR, RevPAR]
+      - type: matrix
+        rows: [dim_property.property_name]
+        measures: [Occupancy %, ADR, RevPAR]
+  - id: fnb_margin_drivers
+    title: F&B Margin Drivers
+    decision_question: Which controllable F&B pressures are rising despite topline activity?
+    visuals:
+      - type: line
+        axis: dim_date.full_date
+        measures: [Net F&B Revenue, Average Check]
+      - type: bar
+        axis: dim_outlet.outlet_name
+        measures: [Net F&B Revenue, Discount Rate]
+      - type: bar
+        axis: dim_product.category
+        measures: [Purchase Price Variance, Waste Cost, Waste %]
+  - id: labour_purchasing
+    title: Labour & Purchasing
+    decision_question: Where are labour intensity and purchasing variance creating avoidable pressure?
+    visuals:
+      - type: line
+        axis: dim_date.full_date
+        measures: [Labour Cost per Hour, Overtime Share]
+      - type: bar
+        axis: dim_department.department_name
+        measures: [Labour Cost per Hour, Overtime Share]
+      - type: bar
+        axis: dim_supplier.supplier_name
+        measures: [Purchase Price Variance]
