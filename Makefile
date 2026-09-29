@@ -1,4 +1,4 @@
-.PHONY: install lint test generate validate up down ingest reconcile transform warehouse-validate metric-contracts metrics metric-validate diagnostic-benchmark pipeline reverse-test clean
+.PHONY: install lint test generate validate up down ingest reconcile transform warehouse-validate metric-contracts metrics metric-validate diagnostic-benchmark bi-validate pipeline reverse-test clean
 
 install:
 	python -m pip install --upgrade pip
@@ -53,6 +53,9 @@ diagnostic-benchmark:
 		--baseline-dir data/benchmark/healthy \
 		--candidate-dir data/benchmark/leakage \
 		--require-adverse beverage_purchase_cost_pressure beverage_waste_pressure fnb_overtime_pressure
+
+bi-validate:
+	python -m hospitality_intelligence.validate_bi_contract
 
 pipeline: generate validate up ingest reconcile transform warehouse-validate metric-contracts metrics metric-validate
 
