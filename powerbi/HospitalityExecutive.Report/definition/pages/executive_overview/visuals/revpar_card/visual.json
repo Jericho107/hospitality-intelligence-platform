@@ -1,0 +1,48 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "revpar_card",
+  "position": {
+    "x": 216,
+    "y": 24,
+    "z": 2,
+    "height": 100,
+    "width": 180,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Rooms KPI"
+                    }
+                  },
+                  "Property": "RevPAR"
+                }
+              },
+              "queryRef": "Rooms KPI.RevPAR",
+              "nativeQueryRef": "RevPAR"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "revpar_card"
+    },
+    {
+      "name": "contractPageId",
+      "value": "executive_overview"
+    }
+  ]
+}

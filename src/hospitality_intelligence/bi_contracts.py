@@ -23,6 +23,10 @@ MEASURE_RE = re.compile(
     re.MULTILINE,
 )
 TABLE_RE = re.compile(r"^table\s+(?:'([^']+)'|([^\n]+))$", re.MULTILINE)
+COLUMN_RE = re.compile(
+    r"^\s*column\s+(?:'([^']+)'|([^\n]+))$",
+    re.MULTILINE,
+)
 
 RATIO_MEASURES = {
     "Occupancy %",
@@ -107,6 +111,25 @@ def extract_tmdl_measures() -> dict[str, dict[str, str]]:
             measure_name = (match.group(1) or match.group(2)).strip()
             measures[measure_name] = match.group(3).strip()
         tables[table_name] = measures
+    return tables
+
+
+def extract_tmdl_columns() -> dict[str, set[str]]:
+    """Return table -> exposed TMDL column names."""
+
+    tables: dict[str, set[str]] = {}
+    table_dir = SEMANTIC_ROOT / "definition" / "tables"
+    for path in sorted(table_dir.glob("*.tmdl")):
+        text = path.read_text(encoding="utf-8")
+        table_match = TABLE_RE.search(text)
+        if table_match is None:
+            raise ValueError(f"{path}: table declaration not found")
+        table_name = (table_match.group(1) or table_match.group(2)).strip()
+        columns = {
+            (match.group(1) or match.group(2)).strip()
+            for match in COLUMN_RE.finditer(text)
+        }
+        tables[table_name] = columns
     return tables
 
 
@@ -214,6 +237,160 @@ def _validate_powerbi_structure(contract: ReportContract) -> None:
             raise ValueError(f"{page.id}: page must use governed 1280x720 canvas")
 
 
+
+
+def _visual_bindings(payload: dict[str, object]) -> list[tuple[str, str, str]]:
+    """Return (kind, entity, property) for every visual projection."""
+
+    visual = payload.get("visual")
+    if not isinstance(visual, dict):
+        return []
+    query = visual.get("query")
+    if not isinstance(query, dict):
+        return []
+    state = query.get("queryState")
+    if not isinstance(state, dict):
+        return []
+
+    bindings: list[tuple[str, str, str]] = []
+    for role in state.values():
+        if not isinstance(role, dict):
+            continue
+        projections = role.get("projections", [])
+        if not isinstance(projections, list):
+            continue
+        for projection in projections:
+            if not isinstance(projection, dict):
+                continue
+            field = projection.get("field")
+            if not isinstance(field, dict):
+                continue
+            for kind in ("Measure", "Column"):
+                node = field.get(kind)
+                if not isinstance(node, dict):
+                    continue
+                expression = node.get("Expression")
+                source_ref = (
+                    expression.get("SourceRef")
+                    if isinstance(expression, dict)
+                    else None
+                )
+                entity = (
+                    source_ref.get("Entity")
+                    if isinstance(source_ref, dict)
+                    else None
+                )
+                prop = node.get("Property")
+                if isinstance(entity, str) and isinstance(prop, str):
+                    bindings.append((kind, entity, prop))
+    return bindings
+
+
+def _validate_visual_containers(
+    contract: ReportContract,
+    tables: dict[str, dict[str, str]],
+) -> None:
+    all_measures = _flat_measures(tables)
+    columns = extract_tmdl_columns()
+    expected_paths: set[Path] = set()
+
+    for page in contract.pages:
+        seen_tabs: set[int] = set()
+        for visual in page.visuals:
+            path = (
+                REPORT_ROOT
+                / "definition"
+                / "pages"
+                / page.id
+                / "visuals"
+                / visual.id
+                / "visual.json"
+            )
+            expected_paths.add(path)
+            if not path.exists():
+                raise ValueError(f"Missing PBIR visual container: {page.id}:{visual.id}")
+
+            payload = _json(path)
+            if payload.get("name") != visual.id:
+                raise ValueError(f"{page.id}:{visual.id}: PBIR visual name mismatch")
+
+            position = payload.get("position")
+            if not isinstance(position, dict):
+                raise ValueError(f"{page.id}:{visual.id}: missing visual position")
+            x = float(position.get("x", -1))
+            y = float(position.get("y", -1))
+            width = float(position.get("width", -1))
+            height = float(position.get("height", -1))
+            if x < 0 or y < 0 or width <= 0 or height <= 0:
+                raise ValueError(f"{page.id}:{visual.id}: invalid visual geometry")
+            if x + width > 1280 or y + height > 720:
+                raise ValueError(f"{page.id}:{visual.id}: visual exceeds governed canvas")
+            tab = int(position.get("tabOrder", -1))
+            if tab < 0 or tab in seen_tabs:
+                raise ValueError(f"{page.id}:{visual.id}: invalid/duplicate tab order")
+            seen_tabs.add(tab)
+
+            bindings = _visual_bindings(payload)
+            measure_bindings = {
+                (entity, prop)
+                for kind, entity, prop in bindings
+                if kind == "Measure"
+            }
+            bound = {prop for _, prop in measure_bindings}
+            expected = set(visual.measures)
+            if bound != expected:
+                raise ValueError(
+                    f"{page.id}:{visual.id}: PBIR measure binding mismatch "
+                    f"{sorted(bound)} != {sorted(expected)}"
+                )
+
+            for entity, measure_name in measure_bindings:
+                if entity not in tables or measure_name not in tables[entity]:
+                    raise ValueError(
+                        f"{page.id}:{visual.id}: invalid TMDL measure binding "
+                        f"{entity}.{measure_name}"
+                    )
+
+            unknown = bound - all_measures
+            if unknown:
+                raise ValueError(
+                    f"{page.id}:{visual.id}: PBIR references unknown measures {sorted(unknown)}"
+                )
+
+            for kind, entity, prop in bindings:
+                if kind != "Column":
+                    continue
+                if entity not in columns or prop not in columns[entity]:
+                    raise ValueError(
+                        f"{page.id}:{visual.id}: invalid TMDL column binding "
+                        f"{entity}.{prop}"
+                    )
+
+            annotations = payload.get("annotations", [])
+            if not isinstance(annotations, list):
+                raise ValueError(f"{page.id}:{visual.id}: annotations must be a list")
+            annotation_map = {
+                str(row.get("name")): str(row.get("value"))
+                for row in annotations
+                if isinstance(row, dict)
+            }
+            if annotation_map.get("contractVisualId") != visual.id:
+                raise ValueError(f"{page.id}:{visual.id}: missing contractVisualId annotation")
+            if annotation_map.get("contractPageId") != page.id:
+                raise ValueError(f"{page.id}:{visual.id}: missing contractPageId annotation")
+
+    committed = set(
+        REPORT_ROOT.glob("definition/pages/*/visuals/*/visual.json")
+    )
+    extras = committed - expected_paths
+    missing = expected_paths - committed
+    if extras or missing:
+        raise ValueError(
+            "PBIR visual file coverage mismatch. "
+            f"missing={[str(p) for p in sorted(missing)]} "
+            f"extra={[str(p) for p in sorted(extras)]}"
+        )
+
 def validate_bi_assets(contract_path: Path = DEFAULT_REPORT_CONTRACT) -> tuple[int, int]:
     """Validate semantic model, governed measures and report decision contract."""
 
@@ -221,9 +398,9 @@ def validate_bi_assets(contract_path: Path = DEFAULT_REPORT_CONTRACT) -> tuple[i
     all_measures = _flat_measures(tables)
     contract = ReportContract.model_validate(_yaml(contract_path))
 
-    if contract.status != "semantic_model_implemented_visuals_pending":
+    if contract.status != "visuals_materialized_runtime_pending":
         raise ValueError(
-            "Report status must remain explicit until PBIR visual containers are runtime-validated"
+            "Report status must remain explicit until Power BI Desktop runtime validation is proven"
         )
 
     _validate_measure_contracts(tables)
@@ -252,6 +429,8 @@ def validate_bi_assets(contract_path: Path = DEFAULT_REPORT_CONTRACT) -> tuple[i
                     raise ValueError(f"{key}: forbidden measure referenced: {measure}")
                 if measure not in all_measures:
                     raise ValueError(f"{key}: unknown semantic-model measure: {measure}")
+
+    _validate_visual_containers(contract, tables)
 
     return len(all_measures), len(visual_ids)
 

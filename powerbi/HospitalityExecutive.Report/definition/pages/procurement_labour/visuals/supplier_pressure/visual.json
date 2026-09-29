@@ -1,0 +1,95 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "supplier_pressure",
+  "position": {
+    "x": 24,
+    "y": 160,
+    "z": 3,
+    "height": 500,
+    "width": 580,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchasing KPI"
+                    }
+                  },
+                  "Property": "Actual Purchase Cost"
+                }
+              },
+              "queryRef": "Purchasing KPI.Actual Purchase Cost",
+              "nativeQueryRef": "Actual Purchase Cost"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchasing KPI"
+                    }
+                  },
+                  "Property": "Standard Purchase Cost"
+                }
+              },
+              "queryRef": "Purchasing KPI.Standard Purchase Cost",
+              "nativeQueryRef": "Standard Purchase Cost"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchasing KPI"
+                    }
+                  },
+                  "Property": "Purchase Price Variance"
+                }
+              },
+              "queryRef": "Purchasing KPI.Purchase Price Variance",
+              "nativeQueryRef": "Purchase Price Variance"
+            }
+          ]
+        },
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Supplier"
+                    }
+                  },
+                  "Property": "Supplier"
+                }
+              },
+              "queryRef": "Supplier.Supplier",
+              "nativeQueryRef": "Supplier",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "supplier_pressure"
+    },
+    {
+      "name": "contractPageId",
+      "value": "procurement_labour"
+    }
+  ]
+}

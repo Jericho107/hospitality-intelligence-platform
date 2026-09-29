@@ -19,9 +19,11 @@ This matrix distinguishes implemented evidence from planned architecture.
 | KPI marts reconcile to analytical facts | independent metric validator | CI mutates materialized ADR and requires validation failure | implemented |
 | Power BI semantic measures match governed KPI contracts | TMDL + metric-to-DAX mapping | CI injects a forbidden deferred measure and requires failure | implemented |
 | PBIR page/report contract is internally coherent | PBIR scaffold + machine-readable report contract | unknown/forbidden measure reference fails closed | implemented |
-| Power BI Desktop report is runtime-validated and decision-ready | rendered visual containers + Desktop open/save evidence | runtime + metric/visual QA | not yet implemented |
+| PBIR visual containers are materialized and contract-faithful | 20 committed visual.json files + deterministic generator + layout contract | regenerated files must equal committed files and bindings must match governed measures | implemented |
+| Power BI Desktop report is runtime-validated and decision-ready | Desktop open/save + rendered visual evidence | runtime + metric/visual QA | not yet implemented |
 | Diagnostic ranking identifies injected drivers | paired scenario benchmark + ranked driver output | healthy vs leakage must detect purchase, waste and overtime pressure; healthy vs healthy must detect none | implemented |
 | Forecasting improves on a governed baseline | fixed protocol + measured CI results | candidate must beat seasonal naive, weak zero predictor must fail, acceptance must hold across seeds | implemented |
-| Management opportunity is quantified with explicit assumptions | action-value contract + sensitivity model | healthy/leakage separation using identical logic | implemented |\n| Real intervention impact is measured | observed post-action results + attribution controls | pre/post intervention review | not yet implemented |
+| Management opportunity is quantified with explicit assumptions | action-value contract + sensitivity model | healthy/leakage separation using identical logic | implemented |
+| Real intervention impact is measured | observed post-action results + attribution controls | pre/post intervention review | not yet implemented |
 
 No score credit is given for rows marked `not yet implemented`.

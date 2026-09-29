@@ -1,0 +1,76 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "labour_kpis",
+  "position": {
+    "x": 628,
+    "y": 24,
+    "z": 2,
+    "height": 110,
+    "width": 588,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "multiRowCard",
+    "query": {
+      "queryState": {
+        "Fields": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Labour KPI"
+                    }
+                  },
+                  "Property": "Labour Cost"
+                }
+              },
+              "queryRef": "Labour KPI.Labour Cost",
+              "nativeQueryRef": "Labour Cost"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Labour KPI"
+                    }
+                  },
+                  "Property": "Labour Cost per Hour"
+                }
+              },
+              "queryRef": "Labour KPI.Labour Cost per Hour",
+              "nativeQueryRef": "Labour Cost per Hour"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Labour KPI"
+                    }
+                  },
+                  "Property": "Overtime Share"
+                }
+              },
+              "queryRef": "Labour KPI.Overtime Share",
+              "nativeQueryRef": "Overtime Share"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "labour_kpis"
+    },
+    {
+      "name": "contractPageId",
+      "value": "procurement_labour"
+    }
+  ]
+}

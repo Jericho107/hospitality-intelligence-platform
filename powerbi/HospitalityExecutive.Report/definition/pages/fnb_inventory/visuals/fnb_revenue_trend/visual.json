@@ -1,0 +1,67 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "fnb_revenue_trend",
+  "position": {
+    "x": 24,
+    "y": 160,
+    "z": 2,
+    "height": 240,
+    "width": 580,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "lineChart",
+    "query": {
+      "queryState": {
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F&B KPI"
+                    }
+                  },
+                  "Property": "Net F&B Revenue"
+                }
+              },
+              "queryRef": "F&B KPI.Net F&B Revenue",
+              "nativeQueryRef": "Net F&B Revenue"
+            }
+          ]
+        },
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "Date.Date",
+              "nativeQueryRef": "Date",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "fnb_revenue_trend"
+    },
+    {
+      "name": "contractPageId",
+      "value": "fnb_inventory"
+    }
+  ]
+}

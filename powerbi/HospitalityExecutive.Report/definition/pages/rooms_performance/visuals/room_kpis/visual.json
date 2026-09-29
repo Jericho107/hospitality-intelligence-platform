@@ -1,0 +1,90 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "room_kpis",
+  "position": {
+    "x": 24,
+    "y": 24,
+    "z": 1,
+    "height": 110,
+    "width": 1192,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "multiRowCard",
+    "query": {
+      "queryState": {
+        "Fields": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Rooms KPI"
+                    }
+                  },
+                  "Property": "Rooms Sold"
+                }
+              },
+              "queryRef": "Rooms KPI.Rooms Sold",
+              "nativeQueryRef": "Rooms Sold"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Rooms KPI"
+                    }
+                  },
+                  "Property": "Occupancy %"
+                }
+              },
+              "queryRef": "Rooms KPI.Occupancy %",
+              "nativeQueryRef": "Occupancy %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Rooms KPI"
+                    }
+                  },
+                  "Property": "ADR"
+                }
+              },
+              "queryRef": "Rooms KPI.ADR",
+              "nativeQueryRef": "ADR"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Rooms KPI"
+                    }
+                  },
+                  "Property": "RevPAR"
+                }
+              },
+              "queryRef": "Rooms KPI.RevPAR",
+              "nativeQueryRef": "RevPAR"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "room_kpis"
+    },
+    {
+      "name": "contractPageId",
+      "value": "rooms_performance"
+    }
+  ]
+}

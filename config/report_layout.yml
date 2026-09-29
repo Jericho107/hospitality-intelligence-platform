@@ -1,0 +1,98 @@
+pages:
+  executive_overview:
+    occupancy_card: {x: 24, y: 24, width: 180, height: 100, z: 1, tab: 1}
+    revpar_card: {x: 216, y: 24, width: 180, height: 100, z: 2, tab: 2}
+    room_revenue_card: {x: 408, y: 24, width: 180, height: 100, z: 3, tab: 3}
+    fnb_revenue_card: {x: 600, y: 24, width: 180, height: 100, z: 4, tab: 4}
+    waste_cost_card: {x: 792, y: 24, width: 180, height: 100, z: 5, tab: 5}
+    labour_cost_card: {x: 984, y: 24, width: 180, height: 100, z: 6, tab: 6}
+    rooms_trend:
+      x: 24
+      y: 150
+      width: 600
+      height: 250
+      z: 7
+      tab: 7
+      category: Date.Date
+    cost_pressure:
+      x: 648
+      y: 150
+      width: 568
+      height: 250
+      z: 8
+      tab: 8
+      category: Property.Property
+
+  rooms_performance:
+    room_kpis: {x: 24, y: 24, width: 1192, height: 110, z: 1, tab: 1}
+    room_revenue_trend:
+      x: 24
+      y: 160
+      width: 580
+      height: 240
+      z: 2
+      tab: 2
+      category: Date.Date
+    occupancy_trend:
+      x: 628
+      y: 160
+      width: 588
+      height: 240
+      z: 3
+      tab: 3
+      category: Date.Date
+    property_room_compare:
+      x: 24
+      y: 424
+      width: 1192
+      height: 250
+      z: 4
+      tab: 4
+      rows: [Property.Property]
+
+  fnb_inventory:
+    fnb_kpis: {x: 24, y: 24, width: 1192, height: 110, z: 1, tab: 1}
+    fnb_revenue_trend:
+      x: 24
+      y: 160
+      width: 580
+      height: 240
+      z: 2
+      tab: 2
+      category: Date.Date
+    outlet_compare:
+      x: 628
+      y: 160
+      width: 588
+      height: 240
+      z: 3
+      tab: 3
+      rows: [Outlet.Outlet]
+    waste_pressure:
+      x: 24
+      y: 424
+      width: 1192
+      height: 250
+      z: 4
+      tab: 4
+      category: Product.Category
+
+  procurement_labour:
+    procurement_kpis: {x: 24, y: 24, width: 580, height: 110, z: 1, tab: 1}
+    labour_kpis: {x: 628, y: 24, width: 588, height: 110, z: 2, tab: 2}
+    supplier_pressure:
+      x: 24
+      y: 160
+      width: 580
+      height: 500
+      z: 3
+      tab: 3
+      rows: [Supplier.Supplier]
+    department_labour:
+      x: 628
+      y: 160
+      width: 588
+      height: 500
+      z: 4
+      tab: 4
+      rows: [Department.Department]

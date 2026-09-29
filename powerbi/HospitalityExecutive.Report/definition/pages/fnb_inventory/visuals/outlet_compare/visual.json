@@ -1,0 +1,109 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "outlet_compare",
+  "position": {
+    "x": 628,
+    "y": 160,
+    "z": 3,
+    "height": 240,
+    "width": 588,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F&B KPI"
+                    }
+                  },
+                  "Property": "Covers"
+                }
+              },
+              "queryRef": "F&B KPI.Covers",
+              "nativeQueryRef": "Covers"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F&B KPI"
+                    }
+                  },
+                  "Property": "Net F&B Revenue"
+                }
+              },
+              "queryRef": "F&B KPI.Net F&B Revenue",
+              "nativeQueryRef": "Net F&B Revenue"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F&B KPI"
+                    }
+                  },
+                  "Property": "Average Check"
+                }
+              },
+              "queryRef": "F&B KPI.Average Check",
+              "nativeQueryRef": "Average Check"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F&B KPI"
+                    }
+                  },
+                  "Property": "Discount Rate"
+                }
+              },
+              "queryRef": "F&B KPI.Discount Rate",
+              "nativeQueryRef": "Discount Rate"
+            }
+          ]
+        },
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Outlet"
+                    }
+                  },
+                  "Property": "Outlet"
+                }
+              },
+              "queryRef": "Outlet.Outlet",
+              "nativeQueryRef": "Outlet",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "outlet_compare"
+    },
+    {
+      "name": "contractPageId",
+      "value": "fnb_inventory"
+    }
+  ]
+}

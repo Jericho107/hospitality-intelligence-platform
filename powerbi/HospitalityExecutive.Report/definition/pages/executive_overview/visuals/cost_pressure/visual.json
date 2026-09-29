@@ -1,0 +1,95 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "cost_pressure",
+  "position": {
+    "x": 648,
+    "y": 150,
+    "z": 8,
+    "height": 250,
+    "width": 568,
+    "tabOrder": 8
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchasing KPI"
+                    }
+                  },
+                  "Property": "Purchase Price Variance"
+                }
+              },
+              "queryRef": "Purchasing KPI.Purchase Price Variance",
+              "nativeQueryRef": "Purchase Price Variance"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Inventory KPI"
+                    }
+                  },
+                  "Property": "Waste Cost"
+                }
+              },
+              "queryRef": "Inventory KPI.Waste Cost",
+              "nativeQueryRef": "Waste Cost"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Labour KPI"
+                    }
+                  },
+                  "Property": "Labour Cost"
+                }
+              },
+              "queryRef": "Labour KPI.Labour Cost",
+              "nativeQueryRef": "Labour Cost"
+            }
+          ]
+        },
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Property"
+                    }
+                  },
+                  "Property": "Property"
+                }
+              },
+              "queryRef": "Property.Property",
+              "nativeQueryRef": "Property",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "cost_pressure"
+    },
+    {
+      "name": "contractPageId",
+      "value": "executive_overview"
+    }
+  ]
+}

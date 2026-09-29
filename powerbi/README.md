@@ -5,7 +5,7 @@ This directory contains the source-controlled Executive BI layer.
 ## Current proof
 
 - `HospitalityExecutive.SemanticModel/`: TMDL semantic model.
-- `HospitalityExecutive.Report/`: PBIR report scaffold.
+- `HospitalityExecutive.Report/`: PBIR report with 20 materialized visual containers.
 - `config/bi_measure_contracts.yml`: canonical metric-to-DAX mapping.
 - `config/report_contract.yml`: decision/page/visual specification.
 - `python -m hospitality_intelligence.bi_contracts`: CI contract validation.
@@ -14,6 +14,6 @@ This directory contains the source-controlled Executive BI layer.
 
 The TMDL/PBIR assets are authored and structurally validated in Git, but **Power BI Desktop runtime open/save validation is not yet proven**.
 
-The report pages intentionally contain no committed visual containers yet. Visuals will receive score only after the PBIR definitions are materialized and runtime-validated.
+The report visual containers are now committed and deterministically reproducible from `config/report_contract.yml` and `config/report_layout.yml`. They receive source-code/contract credit, but **not Desktop runtime or pixel-level UX credit** until the project is opened, rendered and reviewed in Power BI Desktop.
 
-This separation prevents a report specification from being misrepresented as a finished dashboard.
+This separation prevents source-controlled PBIR code from being misrepresented as a fully runtime-validated dashboard.
