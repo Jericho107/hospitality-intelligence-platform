@@ -1,6 +1,6 @@
+import json
 from pathlib import Path
 
-import json
 import yaml
 
 from hospitality_intelligence.generate_pbir_visuals import generate
