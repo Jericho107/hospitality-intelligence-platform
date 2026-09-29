@@ -24,7 +24,7 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ---
 
-## Current implementation — Phase 4
+## Current implementation — Phase 5
 
 The platform now proves two separate data-trust boundaries before KPI or dashboard logic receives credit.
 
@@ -46,17 +46,23 @@ The platform now proves two separate data-trust boundaries before KPI or dashboa
 - paired healthy-versus-leakage diagnostic benchmark;
 - ranked detection of injected beverage purchase-cost, beverage-waste and F&B overtime pressure;
 - negative control proving the diagnostic engine does not report adverse drivers on healthy-versus-healthy data;
-- CI reverse tests at five levels:
+- governed Executive BI semantic contract mapped only to implemented KPIs;
+- canonical DAX definitions for the current 11 governed metrics;
+- four decision-oriented report pages specified for executive, rooms, F&B and labour/purchasing views;
+- BI contract validation that rejects deferred metrics and unknown visual measures;
+- CI reverse tests at six levels:
   1. source contract corruption;
   2. raw PostgreSQL target mutation;
   3. analytical fact mutation;
   4. materialized KPI corruption;
   5. diagnostic truth / false-positive control;
+  6. BI semantic/report contract integrity;
 - deterministic recovery from each controlled failure.
 
 ### Not yet implemented
 
-- Power BI / DAX artifacts;
+- rendered Power BI Desktop report / PBIR visual layer;
+- Desktop-open validation of a PBIP package;
 - production-style diagnostic alert thresholds or causal attribution;
 - forecast models;
 - quantified management-action impact.
@@ -155,7 +161,7 @@ PMS        POS        PROCUREMENT        WORKFORCE        BUDGET
                   MEASURED BUSINESS IMPACT
 ```
 
-The source-contract, PostgreSQL, KPI-governance and synthetic diagnostic-validation layers are implemented. BI, forecasting and business-impact layers remain target architecture until proven otherwise.
+The source-contract, PostgreSQL, KPI-governance, synthetic diagnostic-validation and Executive BI contract layers are implemented. Rendered Power BI, forecasting and business-impact layers remain target architecture until proven otherwise.
 
 ---
 
@@ -211,7 +217,8 @@ Every KPI requires a documented definition, grain, source, formula and limitatio
 | KPI governance | machine-readable contracts | **implemented** |
 | KPI materialisation | SQL marts + independent reconciliation | **implemented** |
 | Diagnostic validation | paired scenario benchmark + negative control | **implemented** |
-| BI | Power BI / DAX | not yet implemented |
+| Executive BI contract | semantic model + canonical DAX + report specification | **implemented** |
+| Rendered BI | PBIP/PBIR + Desktop visual QA | not yet implemented |
 | Analytics | diagnostic benchmark implemented; broader statistical analysis pending | **partial** |
 | Forecasting | baseline-first time-series / ML evaluation | not yet implemented |
 | Software Quality | pytest + Ruff | **implemented** |
@@ -356,7 +363,7 @@ Empty folders are not created for presentation. A directory appears only when it
 
 The repository is **not OFFICIAL**.
 
-Current phase: **Phase 4 — diagnostic benchmark validated against controlled synthetic truth**.
+Current phase: **Phase 5 — governed Executive BI contract; rendered Power BI still pending**.
 
 Officialisation requires:
 
