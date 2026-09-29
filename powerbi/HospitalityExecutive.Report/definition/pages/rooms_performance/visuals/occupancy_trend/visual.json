@@ -1,0 +1,67 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "occupancy_trend",
+  "position": {
+    "x": 628,
+    "y": 160,
+    "z": 3,
+    "height": 240,
+    "width": 588,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "lineChart",
+    "query": {
+      "queryState": {
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Rooms KPI"
+                    }
+                  },
+                  "Property": "Occupancy %"
+                }
+              },
+              "queryRef": "Rooms KPI.Occupancy %",
+              "nativeQueryRef": "Occupancy %"
+            }
+          ]
+        },
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "full_date"
+                }
+              },
+              "queryRef": "Date.full_date",
+              "nativeQueryRef": "full_date",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "occupancy_trend"
+    },
+    {
+      "name": "contractPageId",
+      "value": "rooms_performance"
+    }
+  ]
+}
