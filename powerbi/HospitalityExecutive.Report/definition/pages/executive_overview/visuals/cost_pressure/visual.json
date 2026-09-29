@@ -69,11 +69,11 @@
                       "Entity": "Property"
                     }
                   },
-                  "Property": "property_name"
+                  "Property": "Property"
                 }
               },
-              "queryRef": "Property.property_name",
-              "nativeQueryRef": "property_name",
+              "queryRef": "Property.Property",
+              "nativeQueryRef": "Property",
               "active": true
             }
           ]
