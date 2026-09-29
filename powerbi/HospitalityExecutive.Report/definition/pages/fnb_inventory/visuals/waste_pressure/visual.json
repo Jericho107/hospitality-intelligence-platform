@@ -1,0 +1,95 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "waste_pressure",
+  "position": {
+    "x": 24,
+    "y": 424,
+    "z": 4,
+    "height": 250,
+    "width": 1192,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Inventory KPI"
+                    }
+                  },
+                  "Property": "Waste Qty"
+                }
+              },
+              "queryRef": "Inventory KPI.Waste Qty",
+              "nativeQueryRef": "Waste Qty"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Inventory KPI"
+                    }
+                  },
+                  "Property": "Waste Cost"
+                }
+              },
+              "queryRef": "Inventory KPI.Waste Cost",
+              "nativeQueryRef": "Waste Cost"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Inventory KPI"
+                    }
+                  },
+                  "Property": "Waste %"
+                }
+              },
+              "queryRef": "Inventory KPI.Waste %",
+              "nativeQueryRef": "Waste %"
+            }
+          ]
+        },
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Product"
+                    }
+                  },
+                  "Property": "category"
+                }
+              },
+              "queryRef": "Product.category",
+              "nativeQueryRef": "category",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "waste_pressure"
+    },
+    {
+      "name": "contractPageId",
+      "value": "fnb_inventory"
+    }
+  ]
+}
