@@ -13,7 +13,7 @@ pages:
       height: 250
       z: 7
       tab: 7
-      category: Date.full_date
+      category: Date.Date
     cost_pressure:
       x: 648
       y: 150
@@ -21,7 +21,7 @@ pages:
       height: 250
       z: 8
       tab: 8
-      category: Property.property_name
+      category: Property.Property
 
   rooms_performance:
     room_kpis: {x: 24, y: 24, width: 1192, height: 110, z: 1, tab: 1}
@@ -32,7 +32,7 @@ pages:
       height: 240
       z: 2
       tab: 2
-      category: Date.full_date
+      category: Date.Date
     occupancy_trend:
       x: 628
       y: 160
@@ -40,7 +40,7 @@ pages:
       height: 240
       z: 3
       tab: 3
-      category: Date.full_date
+      category: Date.Date
     property_room_compare:
       x: 24
       y: 424
@@ -48,7 +48,7 @@ pages:
       height: 250
       z: 4
       tab: 4
-      rows: [Property.property_name]
+      rows: [Property.Property]
 
   fnb_inventory:
     fnb_kpis: {x: 24, y: 24, width: 1192, height: 110, z: 1, tab: 1}
@@ -59,7 +59,7 @@ pages:
       height: 240
       z: 2
       tab: 2
-      category: Date.full_date
+      category: Date.Date
     outlet_compare:
       x: 628
       y: 160
@@ -67,7 +67,7 @@ pages:
       height: 240
       z: 3
       tab: 3
-      rows: [Outlet.outlet_name]
+      rows: [Outlet.Outlet]
     waste_pressure:
       x: 24
       y: 424
@@ -75,7 +75,7 @@ pages:
       height: 250
       z: 4
       tab: 4
-      category: Product.category
+      category: Product.Category
 
   procurement_labour:
     procurement_kpis: {x: 24, y: 24, width: 580, height: 110, z: 1, tab: 1}
@@ -87,7 +87,7 @@ pages:
       height: 500
       z: 3
       tab: 3
-      rows: [Supplier.supplier_name]
+      rows: [Supplier.Supplier]
     department_labour:
       x: 628
       y: 160
@@ -95,4 +95,4 @@ pages:
       height: 500
       z: 4
       tab: 4
-      rows: [Department.department_name]
+      rows: [Department.Department]
