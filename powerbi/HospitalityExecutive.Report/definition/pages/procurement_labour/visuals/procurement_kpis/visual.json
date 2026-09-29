@@ -1,0 +1,62 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "procurement_kpis",
+  "position": {
+    "x": 24,
+    "y": 24,
+    "z": 1,
+    "height": 110,
+    "width": 580,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "multiRowCard",
+    "query": {
+      "queryState": {
+        "Fields": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchasing KPI"
+                    }
+                  },
+                  "Property": "Actual Purchase Cost"
+                }
+              },
+              "queryRef": "Purchasing KPI.Actual Purchase Cost",
+              "nativeQueryRef": "Actual Purchase Cost"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Purchasing KPI"
+                    }
+                  },
+                  "Property": "Purchase Price Variance"
+                }
+              },
+              "queryRef": "Purchasing KPI.Purchase Price Variance",
+              "nativeQueryRef": "Purchase Price Variance"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "procurement_kpis"
+    },
+    {
+      "name": "contractPageId",
+      "value": "procurement_labour"
+    }
+  ]
+}
