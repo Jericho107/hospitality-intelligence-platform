@@ -97,11 +97,11 @@
                       "Entity": "Department"
                     }
                   },
-                  "Property": "department_name"
+                  "Property": "Department"
                 }
               },
-              "queryRef": "Department.department_name",
-              "nativeQueryRef": "department_name",
+              "queryRef": "Department.Department",
+              "nativeQueryRef": "Department",
               "active": true
             }
           ]
