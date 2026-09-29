@@ -55,11 +55,11 @@
                       "Entity": "Date"
                     }
                   },
-                  "Property": "full_date"
+                  "Property": "Date"
                 }
               },
-              "queryRef": "Date.full_date",
-              "nativeQueryRef": "full_date",
+              "queryRef": "Date.Date",
+              "nativeQueryRef": "Date",
               "active": true
             }
           ]
