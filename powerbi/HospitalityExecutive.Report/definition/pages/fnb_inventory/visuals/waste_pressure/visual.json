@@ -69,11 +69,11 @@
                       "Entity": "Product"
                     }
                   },
-                  "Property": "category"
+                  "Property": "Category"
                 }
               },
-              "queryRef": "Product.category",
-              "nativeQueryRef": "category",
+              "queryRef": "Product.Category",
+              "nativeQueryRef": "Category",
               "active": true
             }
           ]
