@@ -1,0 +1,59 @@
+-- Canonical DAX measures generated from the governed BI contract.
+-- Deferred metrics such as Labour Cost % and Controllable Contribution are intentionally absent.
+
+MEASURE 'kpi_rooms_daily'[Occupancy %] =
+    DIVIDE(
+        SUM('kpi_rooms_daily'[rooms_sold]),
+        SUM('kpi_rooms_daily'[rooms_available])
+    )
+
+MEASURE 'kpi_rooms_daily'[ADR] =
+    DIVIDE(
+        SUM('kpi_rooms_daily'[room_revenue]),
+        SUM('kpi_rooms_daily'[rooms_sold])
+    )
+
+MEASURE 'kpi_rooms_daily'[RevPAR] =
+    DIVIDE(
+        SUM('kpi_rooms_daily'[room_revenue]),
+        SUM('kpi_rooms_daily'[rooms_available])
+    )
+
+MEASURE 'kpi_fnb_outlet_daily'[Net F&B Revenue] =
+    SUM('kpi_fnb_outlet_daily'[net_revenue])
+
+MEASURE 'kpi_fnb_outlet_daily'[Average Check] =
+    DIVIDE(
+        SUM('kpi_fnb_outlet_daily'[net_revenue]),
+        SUM('kpi_fnb_outlet_daily'[covers])
+    )
+
+MEASURE 'kpi_fnb_outlet_daily'[Discount Rate] =
+    DIVIDE(
+        SUM('kpi_fnb_outlet_daily'[discount_amount]),
+        SUM('kpi_fnb_outlet_daily'[gross_revenue])
+    )
+
+MEASURE 'kpi_purchasing_daily'[Purchase Price Variance] =
+    SUM('kpi_purchasing_daily'[purchase_price_variance])
+
+MEASURE 'kpi_inventory_daily'[Waste Cost] =
+    SUM('kpi_inventory_daily'[waste_cost])
+
+MEASURE 'kpi_inventory_daily'[Waste %] =
+    DIVIDE(
+        SUM('kpi_inventory_daily'[waste_qty]),
+        SUM('kpi_inventory_daily'[usage_qty]) + SUM('kpi_inventory_daily'[waste_qty])
+    )
+
+MEASURE 'kpi_labour_daily'[Labour Cost per Hour] =
+    DIVIDE(
+        SUM('kpi_labour_daily'[labour_cost]),
+        SUM('kpi_labour_daily'[actual_hours])
+    )
+
+MEASURE 'kpi_labour_daily'[Overtime Share] =
+    DIVIDE(
+        SUM('kpi_labour_daily'[overtime_hours]),
+        SUM('kpi_labour_daily'[actual_hours])
+    )
