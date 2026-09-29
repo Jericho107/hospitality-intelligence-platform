@@ -1,0 +1,136 @@
+version: 1
+model: Hospitality Executive
+source: PostgreSQL analytics schema
+tables:
+  - name: dim_date
+    type: dimension
+    key: date_key
+    columns: [date_key, full_date, year_number, month_number, day_number, month_start, day_name, is_weekend]
+  - name: dim_property
+    type: dimension
+    key: property_key
+    columns: [property_key, property_id, property_name, archetype, rooms_count, city]
+  - name: dim_outlet
+    type: dimension
+    key: outlet_key
+    columns: [outlet_key, outlet_id, property_key, outlet_name, outlet_type]
+  - name: dim_product
+    type: dimension
+    key: product_key
+    columns: [product_key, product_id, outlet_key, property_key, product_name, category, menu_price, standard_unit_cost, inventory_usage_per_unit]
+  - name: dim_supplier
+    type: dimension
+    key: supplier_key
+    columns: [supplier_key, supplier_id, supplier_name, category]
+  - name: dim_department
+    type: dimension
+    key: department_key
+    columns: [department_key, department_id, department_name]
+  - name: kpi_rooms_daily
+    type: fact
+    columns: [date_key, property_key, rooms_available, rooms_sold, room_revenue, occupancy_pct, adr, revpar]
+  - name: kpi_fnb_outlet_daily
+    type: fact
+    columns: [date_key, property_key, outlet_key, covers, gross_revenue, discount_amount, net_revenue, average_check, discount_rate]
+  - name: kpi_purchasing_daily
+    type: fact
+    columns: [date_key, property_key, product_key, supplier_key, quantity, actual_purchase_cost, standard_purchase_cost, purchase_price_variance]
+  - name: kpi_inventory_daily
+    type: fact
+    columns: [date_key, property_key, product_key, usage_qty, waste_qty, weighted_unit_cost, usage_cost, waste_cost, waste_pct]
+  - name: kpi_labour_daily
+    type: fact
+    columns: [date_key, property_key, department_key, actual_hours, overtime_hours, labour_cost, labour_cost_per_hour, overtime_share]
+
+relationships:
+  - from: kpi_rooms_daily.date_key
+    to: dim_date.date_key
+    cardinality: many-to-one
+  - from: kpi_rooms_daily.property_key
+    to: dim_property.property_key
+    cardinality: many-to-one
+  - from: kpi_fnb_outlet_daily.date_key
+    to: dim_date.date_key
+    cardinality: many-to-one
+  - from: kpi_fnb_outlet_daily.property_key
+    to: dim_property.property_key
+    cardinality: many-to-one
+  - from: kpi_fnb_outlet_daily.outlet_key
+    to: dim_outlet.outlet_key
+    cardinality: many-to-one
+  - from: kpi_purchasing_daily.date_key
+    to: dim_date.date_key
+    cardinality: many-to-one
+  - from: kpi_purchasing_daily.property_key
+    to: dim_property.property_key
+    cardinality: many-to-one
+  - from: kpi_purchasing_daily.product_key
+    to: dim_product.product_key
+    cardinality: many-to-one
+  - from: kpi_purchasing_daily.supplier_key
+    to: dim_supplier.supplier_key
+    cardinality: many-to-one
+  - from: kpi_inventory_daily.date_key
+    to: dim_date.date_key
+    cardinality: many-to-one
+  - from: kpi_inventory_daily.property_key
+    to: dim_property.property_key
+    cardinality: many-to-one
+  - from: kpi_inventory_daily.product_key
+    to: dim_product.product_key
+    cardinality: many-to-one
+  - from: kpi_labour_daily.date_key
+    to: dim_date.date_key
+    cardinality: many-to-one
+  - from: kpi_labour_daily.property_key
+    to: dim_property.property_key
+    cardinality: many-to-one
+  - from: kpi_labour_daily.department_key
+    to: dim_department.department_key
+    cardinality: many-to-one
+
+measures:
+  - metric_id: occupancy_pct
+    name: Occupancy %
+    expression: DIVIDE(SUM(kpi_rooms_daily[rooms_sold]), SUM(kpi_rooms_daily[rooms_available]))
+    format: 0.0%
+  - metric_id: adr
+    name: ADR
+    expression: DIVIDE(SUM(kpi_rooms_daily[room_revenue]), SUM(kpi_rooms_daily[rooms_sold]))
+    format: "#,0.00"
+  - metric_id: revpar
+    name: RevPAR
+    expression: DIVIDE(SUM(kpi_rooms_daily[room_revenue]), SUM(kpi_rooms_daily[rooms_available]))
+    format: "#,0.00"
+  - metric_id: net_fnb_revenue
+    name: Net F&B Revenue
+    expression: SUM(kpi_fnb_outlet_daily[net_revenue])
+    format: "#,0.00"
+  - metric_id: average_check
+    name: Average Check
+    expression: DIVIDE(SUM(kpi_fnb_outlet_daily[net_revenue]), SUM(kpi_fnb_outlet_daily[covers]))
+    format: "#,0.00"
+  - metric_id: discount_rate
+    name: Discount Rate
+    expression: DIVIDE(SUM(kpi_fnb_outlet_daily[discount_amount]), SUM(kpi_fnb_outlet_daily[gross_revenue]))
+    format: 0.0%
+  - metric_id: purchase_price_variance
+    name: Purchase Price Variance
+    expression: SUM(kpi_purchasing_daily[purchase_price_variance])
+    format: "#,0.00;[Red]-#,0.00"
+  - metric_id: waste_cost
+    name: Waste Cost
+    expression: SUM(kpi_inventory_daily[waste_cost])
+    format: "#,0.00"
+  - metric_id: waste_pct
+    name: Waste %
+    expression: DIVIDE(SUM(kpi_inventory_daily[waste_qty]), SUM(kpi_inventory_daily[usage_qty]) + SUM(kpi_inventory_daily[waste_qty]))
+    format: 0.0%
+  - metric_id: labour_cost_per_hour
+    name: Labour Cost per Hour
+    expression: DIVIDE(SUM(kpi_labour_daily[labour_cost]), SUM(kpi_labour_daily[actual_hours]))
+    format: "#,0.00"
+  - metric_id: overtime_share
+    name: Overtime Share
+    expression: DIVIDE(SUM(kpi_labour_daily[overtime_hours]), SUM(kpi_labour_daily[actual_hours]))
+    format: 0.0%
