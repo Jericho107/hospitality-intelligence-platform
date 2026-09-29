@@ -24,9 +24,9 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ---
 
-## Current implementation — Phase 7 (management action & value proof)
+## Current implementation — Phase 8 (materialized PBIR visual layer)
 
-The platform now enforces six fail-closed evidence boundaries from synthetic source contracts through the governed BI contract layer.
+The platform now enforces eight fail-closed evidence boundaries from synthetic source contracts through the governed BI, forecasting and value layers.
 
 ### Implemented now
 
@@ -49,6 +49,8 @@ The platform now enforces six fail-closed evidence boundaries from synthetic sou
 - source-controlled Power BI semantic model in TMDL;
 - governed DAX measure layer mapped back to implemented KPI contracts;
 - PBIR report/page scaffold for four management decision surfaces;
+- 20 materialized PBIR visual containers generated deterministically from governed report and layout contracts;
+- explicit visual-to-TMDL measure bindings, 1280×720 geometry and deterministic keyboard tab order;
 - machine-readable report contract preventing unknown or deferred measures from entering BI;
 - governed seven-day-ahead room-demand forecasting protocol;
 - seasonal-naive 7-day baseline versus HistGradientBoosting candidate;
@@ -72,8 +74,8 @@ The platform now enforces six fail-closed evidence boundaries from synthetic sou
 
 ### Not yet implemented
 
-- rendered PBIR visual containers;
 - Power BI Desktop open/save runtime validation;
+- rendered screenshot evidence from Power BI Desktop;
 - pixel-level decision UX and accessibility review in a rendered report;
 - production-style diagnostic alert thresholds or causal attribution;
 - production forecast validation on real booking-pace and exogenous demand data;
@@ -173,7 +175,7 @@ PMS        POS        PROCUREMENT        WORKFORCE        BUDGET
                   MEASURED BUSINESS IMPACT
 ```
 
-The source-contract, PostgreSQL, KPI-governance, synthetic diagnostic-validation, BI semantic-contract, synthetic baseline-first forecasting and modeled management-opportunity layers are implemented. The rendered Power BI runtime layer and realized intervention-impact layer remain target architecture until proven otherwise.
+The source-contract, PostgreSQL, KPI-governance, synthetic diagnostic-validation, BI semantic-contract, PBIR visual-container, synthetic baseline-first forecasting and modeled management-opportunity layers are implemented. Power BI Desktop runtime validation and realized intervention impact remain target architecture until proven otherwise.
 
 ---
 
@@ -262,13 +264,14 @@ See [docs/management_action_value.md](docs/management_action_value.md) and [docs
 | Diagnostic validation | paired scenario benchmark + negative control | **implemented** |
 | BI semantic model | TMDL + governed DAX measures | **implemented** |
 | BI report contract | PBIR page scaffold + machine-readable visual contract | **implemented** |
+| PBIR visual layer | 20 deterministic visual containers + semantic bindings + layout checks | **implemented** |
 | BI runtime / decision UX | Power BI Desktop render/open/save + visual QA | not yet implemented |
 | Analytics | diagnostic benchmark implemented; broader statistical analysis pending | **partial** |
 | Forecasting | seasonal-naive baseline + HistGradientBoosting + chronological evaluation | **implemented on synthetic benchmark** |
 | Management value model | explicit exposures + 25/50/75% recovery scenarios | **implemented on synthetic benchmark** |
 | Realized impact attribution | observed intervention + post-action measurement | not yet implemented |
 | Software Quality | pytest + Ruff | **implemented** |
-| Delivery | Docker Compose + GitHub Actions | **implemented through Phase 5 CI** |
+| Delivery | Docker Compose + GitHub Actions | **implemented through Phase 8 CI** |
 | Documentation | architecture, model, contracts, assumptions, proof matrix | **implemented and evolving** |
 ---
 
@@ -432,7 +435,7 @@ Empty folders are not created for presentation. A directory appears only when it
 
 The repository is **not OFFICIAL**.
 
-Current phase: **Phase 7 — modeled management opportunity validated on synthetic data; Desktop BI runtime and realized intervention impact still pending**.
+Current phase: **Phase 8 — PBIR visual containers materialized and source-controlled; Desktop runtime validation and realized intervention impact still pending**.
 
 Officialisation requires:
 
