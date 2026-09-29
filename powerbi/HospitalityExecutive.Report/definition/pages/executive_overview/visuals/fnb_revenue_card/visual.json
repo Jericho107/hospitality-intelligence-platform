@@ -1,0 +1,48 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "fnb_revenue_card",
+  "position": {
+    "x": 600,
+    "y": 24,
+    "z": 4,
+    "height": 100,
+    "width": 180,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "F&B KPI"
+                    }
+                  },
+                  "Property": "Net F&B Revenue"
+                }
+              },
+              "queryRef": "F&B KPI.Net F&B Revenue",
+              "nativeQueryRef": "Net F&B Revenue"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "fnb_revenue_card"
+    },
+    {
+      "name": "contractPageId",
+      "value": "executive_overview"
+    }
+  ]
+}
