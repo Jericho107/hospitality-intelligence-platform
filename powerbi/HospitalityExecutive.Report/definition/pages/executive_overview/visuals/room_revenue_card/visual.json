@@ -1,0 +1,48 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "room_revenue_card",
+  "position": {
+    "x": 408,
+    "y": 24,
+    "z": 3,
+    "height": 100,
+    "width": 180,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Rooms KPI"
+                    }
+                  },
+                  "Property": "Room Revenue"
+                }
+              },
+              "queryRef": "Rooms KPI.Room Revenue",
+              "nativeQueryRef": "Room Revenue"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "annotations": [
+    {
+      "name": "contractVisualId",
+      "value": "room_revenue_card"
+    },
+    {
+      "name": "contractPageId",
+      "value": "executive_overview"
+    }
+  ]
+}
