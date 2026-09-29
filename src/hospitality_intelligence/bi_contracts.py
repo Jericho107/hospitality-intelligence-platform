@@ -23,6 +23,10 @@ MEASURE_RE = re.compile(
     re.MULTILINE,
 )
 TABLE_RE = re.compile(r"^table\s+(?:'([^']+)'|([^\n]+))$", re.MULTILINE)
+COLUMN_RE = re.compile(
+    r"^\s*column\s+(?:'([^']+)'|([^\n]+))$",
+    re.MULTILINE,
+)
 
 RATIO_MEASURES = {
     "Occupancy %",
@@ -107,6 +111,25 @@ def extract_tmdl_measures() -> dict[str, dict[str, str]]:
             measure_name = (match.group(1) or match.group(2)).strip()
             measures[measure_name] = match.group(3).strip()
         tables[table_name] = measures
+    return tables
+
+
+def extract_tmdl_columns() -> dict[str, set[str]]:
+    """Return table -> exposed TMDL column names."""
+
+    tables: dict[str, set[str]] = {}
+    table_dir = SEMANTIC_ROOT / "definition" / "tables"
+    for path in sorted(table_dir.glob("*.tmdl")):
+        text = path.read_text(encoding="utf-8")
+        table_match = TABLE_RE.search(text)
+        if table_match is None:
+            raise ValueError(f"{path}: table declaration not found")
+        table_name = (table_match.group(1) or table_match.group(2)).strip()
+        columns = {
+            (match.group(1) or match.group(2)).strip()
+            for match in COLUMN_RE.finditer(text)
+        }
+        tables[table_name] = columns
     return tables
 
 
@@ -216,18 +239,20 @@ def _validate_powerbi_structure(contract: ReportContract) -> None:
 
 
 
-def _visual_measure_names(payload: dict[str, object]) -> set[str]:
+def _visual_bindings(payload: dict[str, object]) -> list[tuple[str, str, str]]:
+    """Return (kind, entity, property) for every visual projection."""
+
     visual = payload.get("visual")
     if not isinstance(visual, dict):
-        return set()
+        return []
     query = visual.get("query")
     if not isinstance(query, dict):
-        return set()
+        return []
     state = query.get("queryState")
     if not isinstance(state, dict):
-        return set()
+        return []
 
-    names: set[str] = set()
+    bindings: list[tuple[str, str, str]] = []
     for role in state.values():
         if not isinstance(role, dict):
             continue
@@ -240,10 +265,25 @@ def _visual_measure_names(payload: dict[str, object]) -> set[str]:
             field = projection.get("field")
             if not isinstance(field, dict):
                 continue
-            measure = field.get("Measure")
-            if isinstance(measure, dict) and isinstance(measure.get("Property"), str):
-                names.add(measure["Property"])
-    return names
+            for kind in ("Measure", "Column"):
+                node = field.get(kind)
+                if not isinstance(node, dict):
+                    continue
+                expression = node.get("Expression")
+                source_ref = (
+                    expression.get("SourceRef")
+                    if isinstance(expression, dict)
+                    else None
+                )
+                entity = (
+                    source_ref.get("Entity")
+                    if isinstance(source_ref, dict)
+                    else None
+                )
+                prop = node.get("Property")
+                if isinstance(entity, str) and isinstance(prop, str):
+                    bindings.append((kind, entity, prop))
+    return bindings
 
 
 def _validate_visual_containers(
@@ -251,6 +291,7 @@ def _validate_visual_containers(
     tables: dict[str, dict[str, str]],
 ) -> None:
     all_measures = _flat_measures(tables)
+    columns = extract_tmdl_columns()
     expected_paths: set[Path] = set()
 
     for page in contract.pages:
@@ -289,18 +330,41 @@ def _validate_visual_containers(
                 raise ValueError(f"{page.id}:{visual.id}: invalid/duplicate tab order")
             seen_tabs.add(tab)
 
-            bound = _visual_measure_names(payload)
+            bindings = _visual_bindings(payload)
+            measure_bindings = {
+                (entity, prop)
+                for kind, entity, prop in bindings
+                if kind == "Measure"
+            }
+            bound = {prop for _, prop in measure_bindings}
             expected = set(visual.measures)
             if bound != expected:
                 raise ValueError(
                     f"{page.id}:{visual.id}: PBIR measure binding mismatch "
                     f"{sorted(bound)} != {sorted(expected)}"
                 )
+
+            for entity, measure_name in measure_bindings:
+                if entity not in tables or measure_name not in tables[entity]:
+                    raise ValueError(
+                        f"{page.id}:{visual.id}: invalid TMDL measure binding "
+                        f"{entity}.{measure_name}"
+                    )
+
             unknown = bound - all_measures
             if unknown:
                 raise ValueError(
                     f"{page.id}:{visual.id}: PBIR references unknown measures {sorted(unknown)}"
                 )
+
+            for kind, entity, prop in bindings:
+                if kind != "Column":
+                    continue
+                if entity not in columns or prop not in columns[entity]:
+                    raise ValueError(
+                        f"{page.id}:{visual.id}: invalid TMDL column binding "
+                        f"{entity}.{prop}"
+                    )
 
             annotations = payload.get("annotations", [])
             if not isinstance(annotations, list):
