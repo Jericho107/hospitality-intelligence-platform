@@ -69,11 +69,11 @@
                       "Entity": "Supplier"
                     }
                   },
-                  "Property": "supplier_name"
+                  "Property": "Supplier"
                 }
               },
-              "queryRef": "Supplier.supplier_name",
-              "nativeQueryRef": "supplier_name",
+              "queryRef": "Supplier.Supplier",
+              "nativeQueryRef": "Supplier",
               "active": true
             }
           ]
