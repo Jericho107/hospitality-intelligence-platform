@@ -1,13 +1,8 @@
 import hashlib
-import importlib
 import json
 from pathlib import Path
 
-from hospitality_intelligence.validate_desktop_evidence import (
-    expected_pages,
-    powerbi_fingerprint,
-    validate_runtime_evidence,
-)
+from hospitality_intelligence import validate_desktop_evidence as desktop_evidence
 
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"synthetic-png-fixture"
@@ -19,17 +14,17 @@ def _sha(data: bytes) -> str:
 
 def test_missing_runtime_evidence_can_remain_pending(tmp_path: Path) -> None:
     missing = tmp_path / "runtime_evidence.json"
-    assert validate_runtime_evidence(missing, allow_missing=True) == []
-    assert validate_runtime_evidence(missing, allow_missing=False)
+    assert desktop_evidence.validate_runtime_evidence(missing, allow_missing=True) == []
+    assert desktop_evidence.validate_runtime_evidence(missing, allow_missing=False)
 
 
 def test_powerbi_fingerprint_is_stable() -> None:
-    assert powerbi_fingerprint() == powerbi_fingerprint()
-    assert len(powerbi_fingerprint()) == 64
+    assert desktop_evidence.powerbi_fingerprint() == desktop_evidence.powerbi_fingerprint()
+    assert len(desktop_evidence.powerbi_fingerprint()) == 64
 
 
 def test_expected_runtime_page_contract_is_four_pages() -> None:
-    assert expected_pages() == [
+    assert desktop_evidence.expected_pages() == [
         "executive_overview",
         "rooms_performance",
         "fnb_inventory",
@@ -38,13 +33,12 @@ def test_expected_runtime_page_contract_is_four_pages() -> None:
 
 
 def test_tampered_screenshot_is_rejected(tmp_path: Path, monkeypatch) -> None:
-    module = importlib.import_module("hospitality_intelligence.validate_desktop_evidence")
     evidence_dir = tmp_path / "evidence" / "powerbi-desktop"
     screenshot_dir = evidence_dir / "screenshots"
     screenshot_dir.mkdir(parents=True)
 
     screenshots = []
-    for page in expected_pages():
+    for page in desktop_evidence.expected_pages():
         path = screenshot_dir / f"{page}.png"
         path.write_bytes(PNG)
         screenshots.append(
@@ -68,7 +62,7 @@ def test_tampered_screenshot_is_rejected(tmp_path: Path, monkeypatch) -> None:
             "file.reload/v1",
         ],
         "pageCount": 4,
-        "pageOrder": expected_pages(),
+        "pageOrder": desktop_evidence.expected_pages(),
         "checks": {
             "bridgeConnected": True,
             "unsavedChanges": False,
@@ -80,12 +74,12 @@ def test_tampered_screenshot_is_rejected(tmp_path: Path, monkeypatch) -> None:
     evidence_path = evidence_dir / "runtime_evidence.json"
     evidence_path.write_text(json.dumps(evidence), encoding="utf-8")
 
-    monkeypatch.setattr(module, "ROOT", tmp_path)
-    monkeypatch.setattr(module, "powerbi_fingerprint", lambda root=tmp_path: "fixture-fingerprint")
+    monkeypatch.setattr(desktop_evidence, "ROOT", tmp_path)
+    monkeypatch.setattr(desktop_evidence, "powerbi_fingerprint", lambda root=tmp_path: "fixture-fingerprint")
 
-    assert validate_runtime_evidence(evidence_path) == []
+    assert desktop_evidence.validate_runtime_evidence(evidence_path) == []
 
     first = tmp_path / screenshots[0]["file"]
     first.write_bytes(PNG + b"tampered")
-    errors = validate_runtime_evidence(evidence_path)
+    errors = desktop_evidence.validate_runtime_evidence(evidence_path)
     assert any("hash mismatch" in error for error in errors)
