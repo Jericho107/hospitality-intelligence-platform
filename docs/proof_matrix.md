@@ -20,7 +20,9 @@ This matrix distinguishes implemented evidence from planned architecture.
 | Power BI semantic measures match governed KPI contracts | TMDL + metric-to-DAX mapping | CI injects a forbidden deferred measure and requires failure | implemented |
 | PBIR page/report contract is internally coherent | PBIR scaffold + machine-readable report contract | unknown/forbidden measure reference fails closed | implemented |
 | PBIR visual containers are materialized and contract-faithful | 20 committed visual.json files + deterministic generator + layout contract | regenerated files must equal committed files and bindings must match governed measures | implemented |
-| Power BI Desktop report is runtime-validated and decision-ready | Desktop open/save + rendered visual evidence | runtime + metric/visual QA | not yet implemented |
+| PBIR passes Microsoft's official authoring validator | pinned `@microsoft/powerbi-report-authoring-cli@0.4.0` in CI | Microsoft validator must exit non-zero on PBIR conformance errors | implemented |
+| Power BI Desktop runtime evidence gate is reproducible | PBIP shortcut + Desktop Bridge harness + screenshot/fingerprint validator | stale/tampered/incomplete evidence must fail validation | implemented as gate; runtime evidence pending |
+| Power BI Desktop report is runtime-validated and decision-ready | real Desktop Bridge open/reload + 4 rendered screenshots + independent visual QA | runtime + metric/visual QA | not yet implemented |
 | Diagnostic ranking identifies injected drivers | paired scenario benchmark + ranked driver output | healthy vs leakage must detect purchase, waste and overtime pressure; healthy vs healthy must detect none | implemented |
 | Forecasting improves on a governed baseline | fixed protocol + measured CI results | candidate must beat seasonal naive, weak zero predictor must fail, acceptance must hold across seeds | implemented |
 | Management opportunity is quantified with explicit assumptions | action-value contract + sensitivity model | healthy/leakage separation using identical logic | implemented |
