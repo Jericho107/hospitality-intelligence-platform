@@ -64,7 +64,7 @@ jobs:
       - name: Compile
         run: python -m compileall -q src tests
 
-      - name: Show canonical Ruff import diff
+      - name: Show canonical Ruff import diff (temporary)
         run: ruff check --select I001 --fix --diff tests/test_desktop_evidence.py || true
 
       - name: Lint
