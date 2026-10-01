@@ -2,7 +2,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from hospitality_intelligence import validate_desktop_evidence as desktop_evidence
+import hospitality_intelligence.validate_desktop_evidence as desktop_evidence
 
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"synthetic-png-fixture"
@@ -75,7 +75,11 @@ def test_tampered_screenshot_is_rejected(tmp_path: Path, monkeypatch) -> None:
     evidence_path.write_text(json.dumps(evidence), encoding="utf-8")
 
     monkeypatch.setattr(desktop_evidence, "ROOT", tmp_path)
-    monkeypatch.setattr(desktop_evidence, "powerbi_fingerprint", lambda root=tmp_path: "fixture-fingerprint")
+    monkeypatch.setattr(
+        desktop_evidence,
+        "powerbi_fingerprint",
+        lambda root=tmp_path: "fixture-fingerprint",
+    )
 
     assert desktop_evidence.validate_runtime_evidence(evidence_path) == []
 
