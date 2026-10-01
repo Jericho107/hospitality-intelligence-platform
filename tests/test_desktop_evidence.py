@@ -2,7 +2,7 @@ import hashlib
 import json
 from pathlib import Path
 
-import hospitality_intelligence.validate_desktop_evidence as module
+from hospitality_intelligence import validate_desktop_evidence as module
 from hospitality_intelligence.validate_desktop_evidence import (
     expected_pages,
     powerbi_fingerprint,
