@@ -1,4 +1,4 @@
-.PHONY: install lint test generate validate up down ingest reconcile transform warehouse-validate metric-contracts metrics metric-validate diagnostic-benchmark bi-validate forecast-generate forecast-validate pipeline reverse-test clean
+.PHONY: install lint test generate validate up down ingest reconcile transform warehouse-validate metric-contracts metrics metric-validate diagnostic-benchmark bi-validate desktop-evidence-validate forecast-generate forecast-validate pipeline reverse-test clean
 
 install:
 	python -m pip install --upgrade pip
@@ -56,6 +56,9 @@ diagnostic-benchmark:
 
 bi-validate:
 	python -m hospitality_intelligence.bi_contracts
+
+desktop-evidence-validate:
+	python -m hospitality_intelligence.validate_desktop_evidence
 
 forecast-generate:
 	python -m hospitality_intelligence.generate_synthetic_data \
