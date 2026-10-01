@@ -91,7 +91,7 @@ def validate_runtime_evidence(
     else:
         required_checks = {
             "bridgeConnected": True,
-            "unsavedChanges": False,
+            "instanceResolvedUniquely": True,
             "reloadCompleted": True,
             "allPagesCaptured": True,
         }
