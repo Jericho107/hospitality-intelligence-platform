@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Hospitality Executive"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "c943f1de-b2dd-56a5-a937-4d61671f1c5c"
+  }
+}

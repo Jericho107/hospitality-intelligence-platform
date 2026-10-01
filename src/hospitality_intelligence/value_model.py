@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import asdict, dataclass
+from datetime import timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -83,9 +84,9 @@ def _windows(
     baseline_days: int,
 ) -> tuple[pd.Timestamp, pd.Timestamp, pd.Timestamp, pd.Timestamp]:
     end = frame["date"].max()
-    analysis_start = end - pd.Timedelta(days=analysis_days - 1)
-    baseline_end = analysis_start - pd.Timedelta(days=1)
-    baseline_start = baseline_end - pd.Timedelta(days=baseline_days - 1)
+    analysis_start = end - timedelta(days=analysis_days - 1)
+    baseline_end = analysis_start - timedelta(days=1)
+    baseline_start = baseline_end - timedelta(days=baseline_days - 1)
     if baseline_start < frame["date"].min():
         raise ValueError("Insufficient history for action-value baseline")
     return analysis_start, end, baseline_start, baseline_end

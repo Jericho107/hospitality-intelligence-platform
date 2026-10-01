@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import asdict, dataclass
+from datetime import timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -50,7 +51,7 @@ def _final_window(frame: pd.DataFrame, date_column: str, days: int = 20) -> pd.D
 
     dates = pd.to_datetime(frame[date_column])
     end = dates.max()
-    start = end - pd.Timedelta(days=days - 1)
+    start = end - timedelta(days=days - 1)
     return frame.loc[dates.between(start, end)].copy()
 
 
