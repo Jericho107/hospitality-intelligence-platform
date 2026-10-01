@@ -24,7 +24,7 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ---
 
-## Current implementation — Phase 8 (materialized PBIR visual layer)
+## Current implementation — Phase 9 (Desktop runtime evidence gate)
 
 The platform now enforces eight fail-closed evidence boundaries from synthetic source contracts through the governed BI, forecasting and value layers.
 
@@ -52,6 +52,9 @@ The platform now enforces eight fail-closed evidence boundaries from synthetic s
 - 20 materialized PBIR visual containers generated deterministically from governed report and layout contracts;
 - explicit visual-to-TMDL measure bindings, 1280×720 geometry and deterministic keyboard tab order;
 - machine-readable report contract preventing unknown or deferred measures from entering BI;
+- Microsoft PBIR conformance validation in CI via pinned `@microsoft/powerbi-report-authoring-cli@0.4.0`;
+- Power BI Desktop Bridge evidence harness with pinned `@microsoft/powerbi-desktop-bridge-cli@1.0.0`;
+- screenshot hash/fingerprint validator that rejects stale, incomplete or tampered Desktop evidence;
 - governed seven-day-ahead room-demand forecasting protocol;
 - seasonal-naive 7-day baseline versus HistGradientBoosting candidate;
 - chronological train / validation / untouched final-test workflow;
@@ -74,8 +77,8 @@ The platform now enforces eight fail-closed evidence boundaries from synthetic s
 
 ### Not yet implemented
 
-- Power BI Desktop open/save runtime validation;
-- rendered screenshot evidence from Power BI Desktop;
+- **successful committed Power BI Desktop runtime evidence** from the Phase 9 harness;
+- rendered screenshot evidence reviewed for executive UX;
 - pixel-level decision UX and accessibility review in a rendered report;
 - production-style diagnostic alert thresholds or causal attribution;
 - production forecast validation on real booking-pace and exogenous demand data;
@@ -175,7 +178,7 @@ PMS        POS        PROCUREMENT        WORKFORCE        BUDGET
                   MEASURED BUSINESS IMPACT
 ```
 
-The source-contract, PostgreSQL, KPI-governance, synthetic diagnostic-validation, BI semantic-contract, PBIR visual-container, synthetic baseline-first forecasting and modeled management-opportunity layers are implemented. Power BI Desktop runtime validation and realized intervention impact remain target architecture until proven otherwise.
+The source-contract, PostgreSQL, KPI-governance, synthetic diagnostic-validation, BI semantic-contract, PBIR visual-container, synthetic baseline-first forecasting, modeled management-opportunity and Desktop-runtime evidence-gate layers are implemented. Actual Power BI Desktop runtime evidence and realized intervention impact remain unproven until evidence is committed and validated.
 
 ---
 
@@ -265,13 +268,15 @@ See [docs/management_action_value.md](docs/management_action_value.md) and [docs
 | BI semantic model | TMDL + governed DAX measures | **implemented** |
 | BI report contract | PBIR page scaffold + machine-readable visual contract | **implemented** |
 | PBIR visual layer | 20 deterministic visual containers + semantic bindings + layout checks | **implemented** |
+| Microsoft PBIR conformance | official authoring CLI pinned in CI | **implemented** |
+| Desktop runtime evidence gate | PBIP + Desktop Bridge harness + screenshot/fingerprint validation | **implemented; evidence pending** |
 | BI runtime / decision UX | Power BI Desktop render/open/save + visual QA | not yet implemented |
 | Analytics | diagnostic benchmark implemented; broader statistical analysis pending | **partial** |
 | Forecasting | seasonal-naive baseline + HistGradientBoosting + chronological evaluation | **implemented on synthetic benchmark** |
 | Management value model | explicit exposures + 25/50/75% recovery scenarios | **implemented on synthetic benchmark** |
 | Realized impact attribution | observed intervention + post-action measurement | not yet implemented |
 | Software Quality | pytest + Ruff | **implemented** |
-| Delivery | Docker Compose + GitHub Actions | **implemented through Phase 8 CI** |
+| Delivery | Docker Compose + GitHub Actions | **implemented through Phase 9 CI** |
 | Documentation | architecture, model, contracts, assumptions, proof matrix | **implemented and evolving** |
 ---
 
@@ -306,7 +311,7 @@ See [`docs/data_model.md`](docs/data_model.md) for the grain contract.
 
 ## Reverse tests — current validation stack
 
-The current CI must prove six independent failure paths:
+The current CI proves eight independent failure paths plus Microsoft PBIR conformance:
 
 ```text
 1. SOURCE CONTRACT
@@ -354,11 +359,27 @@ clean TMDL + PBIR/report contract
 → BI validation FAIL
 → restore clean contract
 → PASS
+
+7. FORECAST SELECTION
+seasonal-naive baseline + candidate
+→ candidate must win validation before final-test access
+→ deliberately weak zero predictor
+→ REJECTED
+
+8. MANAGEMENT VALUE CONTROL
+same logic on healthy + leakage scenarios
+→ leakage opportunity must materially exceed healthy control
+→ PASS
+
+MICROSOFT PBIR CONFORMANCE
+current .Report folder
+→ official Microsoft authoring validator
+→ PASS required
 ```
 
 Warehouse validation does not rely only on global totals. KPI validation independently recalculates implemented metrics from facts and rejects drift in the materialized decision layer. Diagnostic validation includes a negative control, and BI validation fails closed when a deferred measure is introduced into the report contract.
 
-Future phases must still add runtime Power BI visual validation and observed intervention-impact proof.
+Power BI Desktop runtime evidence and observed intervention-impact proof remain unproven.
 ---
 
 ## Local validation
@@ -387,6 +408,18 @@ Validate the Power BI semantic/report contracts:
 
 ```bash
 make bi-validate
+```
+
+Validate committed Desktop runtime evidence:
+
+```bash
+make desktop-evidence-validate
+```
+
+Generate Desktop runtime evidence on Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\capture_powerbi_runtime_evidence.ps1 -InstallCli
 ```
 
 ---
@@ -435,7 +468,7 @@ Empty folders are not created for presentation. A directory appears only when it
 
 The repository is **not OFFICIAL**.
 
-Current phase: **Phase 8 — PBIR visual containers materialized and source-controlled; Desktop runtime validation and realized intervention impact still pending**.
+Current phase: **Phase 9 — Microsoft PBIR validation + reproducible Desktop evidence gate implemented; actual Desktop runtime capture still pending**.
 
 Officialisation requires:
 
