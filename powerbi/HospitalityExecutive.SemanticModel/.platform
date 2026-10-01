@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Hospitality Executive"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "5b5517a5-5977-559f-9d83-8e28d46ead60"
+  }
+}
