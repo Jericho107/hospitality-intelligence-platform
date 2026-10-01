@@ -1,6 +1,7 @@
 import hashlib
-import json
 from pathlib import Path
+
+import json
 
 from hospitality_intelligence import validate_desktop_evidence as desktop_evidence
 
