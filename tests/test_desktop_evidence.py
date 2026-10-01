@@ -1,8 +1,8 @@
 import hashlib
+import importlib
 import json
 from pathlib import Path
 
-from hospitality_intelligence import validate_desktop_evidence as module
 from hospitality_intelligence.validate_desktop_evidence import (
     expected_pages,
     powerbi_fingerprint,
@@ -38,6 +38,7 @@ def test_expected_runtime_page_contract_is_four_pages() -> None:
 
 
 def test_tampered_screenshot_is_rejected(tmp_path: Path, monkeypatch) -> None:
+    module = importlib.import_module("hospitality_intelligence.validate_desktop_evidence")
     evidence_dir = tmp_path / "evidence" / "powerbi-desktop"
     screenshot_dir = evidence_dir / "screenshots"
     screenshot_dir.mkdir(parents=True)
