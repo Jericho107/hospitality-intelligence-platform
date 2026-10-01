@@ -1,9 +1,12 @@
 import hashlib
+import importlib
 import json
 from pathlib import Path
 
-import hospitality_intelligence.validate_desktop_evidence as desktop_evidence
 
+desktop_evidence = importlib.import_module(
+    "hospitality_intelligence.validate_desktop_evidence"
+)
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"synthetic-png-fixture"
 
