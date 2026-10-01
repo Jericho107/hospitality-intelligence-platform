@@ -105,6 +105,22 @@ if (-not (Get-Command "powerbi-desktop" -ErrorAction SilentlyContinue)) {
 
 Require-Command "powerbi-desktop" "Desktop Bridge CLI installation failed."
 
+$installedInfoRaw = npm list -g @microsoft/powerbi-desktop-bridge-cli --json
+$installedInfo = $installedInfoRaw | ConvertFrom-Json -Depth 20
+$installedCliVersion = [string]$installedInfo.dependencies.'@microsoft/powerbi-desktop-bridge-cli'.version
+if ($installedCliVersion -ne "1.0.0") {
+    if ($InstallCli) {
+        npm install -g @microsoft/powerbi-desktop-bridge-cli@1.0.0
+        if ($LASTEXITCODE -ne 0) {
+            throw "Failed to pin @microsoft/powerbi-desktop-bridge-cli@1.0.0."
+        }
+        $installedCliVersion = "1.0.0"
+    }
+    else {
+        throw "Desktop Bridge CLI version $installedCliVersion is installed; Phase 9 requires pinned version 1.0.0. Re-run with -InstallCli."
+    }
+}
+
 if (-not (Test-Path $ProjectPath -PathType Leaf)) {
     throw "Missing PBIP project shortcut: $ProjectPath"
 }
@@ -218,10 +234,17 @@ $desktopVersion = $null
 if ($process.Path -and (Test-Path $process.Path)) {
     $desktopVersion = (Get-Item $process.Path).VersionInfo.ProductVersion
 }
+if (-not $desktopVersion) {
+    $storePackage = Get-AppxPackage -Name Microsoft.MicrosoftPowerBIDesktop -ErrorAction SilentlyContinue
+    if ($storePackage) {
+        $desktopVersion = [string]$storePackage.Version
+    }
+}
+if (-not $desktopVersion) {
+    throw "Could not determine the installed Power BI Desktop version."
+}
 
-$npmInfoRaw = npm list -g @microsoft/powerbi-desktop-bridge-cli --json
-$npmInfo = $npmInfoRaw | ConvertFrom-Json -Depth 20
-$cliVersion = [string]$npmInfo.dependencies.'@microsoft/powerbi-desktop-bridge-cli'.version
+$cliVersion = $installedCliVersion
 
 $methodNames = @()
 if ($manifest.methods) {
