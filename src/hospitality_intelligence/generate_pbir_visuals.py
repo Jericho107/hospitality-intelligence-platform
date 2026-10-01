@@ -19,7 +19,7 @@ DEFAULT_LAYOUT = ROOT / "config" / "report_layout.yml"
 
 TYPE_MAP = {
     "card": ("cardVisual", "Data"),
-    "cards": ("multiRowCard", "Fields"),
+    "cards": ("multiRowCard", "Values"),
     "line": ("lineChart", "Y"),
     "clustered_bar": ("clusteredBarChart", "Y"),
     "matrix": ("pivotTable", "Values"),
