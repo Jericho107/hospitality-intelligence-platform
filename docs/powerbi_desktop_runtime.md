@@ -33,13 +33,15 @@ The PowerShell harness rejects evidence unless:
 
 1. the exact `HospitalityExecutive.pbip` project opens through Desktop Bridge;
 2. the bridge reports `connected`;
-3. Desktop reports no unsaved changes;
+3. the project resolves to exactly one target Desktop instance;
 4. the runtime exposes the required reload and screenshot methods;
-5. the report reload completes;
+5. the report reload completes within the governed wait budget;
 6. every page in PBIR `pages.json` is captured;
 7. capture is complete, not partial;
 8. four PNG screenshots are produced;
 9. a content fingerprint binds the evidence to the current PBIP/PBIR/TMDL files.
+
+The harness records `hasUnsavedChanges` only as an observation. Microsoft documents that some current Desktop builds report it as `true` immediately after opening an untouched PBIP, so that flag is not used as a pass/fail criterion for this owned validation instance.
 
 ## Run on Windows
 
