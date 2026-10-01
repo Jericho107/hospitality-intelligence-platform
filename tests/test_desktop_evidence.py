@@ -64,7 +64,7 @@ def test_tampered_screenshot_is_rejected(tmp_path: Path, monkeypatch) -> None:
         "pageOrder": desktop_evidence.expected_pages(),
         "checks": {
             "bridgeConnected": True,
-            "unsavedChanges": False,
+            "instanceResolvedUniquely": True,
             "reloadCompleted": True,
             "allPagesCaptured": True,
         },
