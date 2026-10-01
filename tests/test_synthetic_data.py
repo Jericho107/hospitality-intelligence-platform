@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -98,7 +98,7 @@ def test_margin_leakage_scenario_changes_only_documented_operating_pressure(
     ]:
         frame["date"] = pd.to_datetime(frame["date"])
 
-    split = pd.Timestamp(leakage_config.anchor_date) + pd.Timedelta(
+    split = pd.Timestamp(leakage_config.anchor_date) + timedelta(
         days=leakage_config.days - 20
     )
 
