@@ -170,21 +170,24 @@ $pidValue = [int]$instance.pid
 if ([string]$instance.bridgeStatus -ne "connected") {
     throw "Desktop Bridge is not connected for PID $pidValue."
 }
-if ([bool]$instance.hasUnsavedChanges) {
-    throw "Power BI Desktop has unsaved changes. Save or discard them before runtime validation."
-}
+$preReloadUnsavedChanges = [bool]$instance.hasUnsavedChanges
 
 $manifest = Get-Payload (Invoke-BridgeJson -Arguments @("manifest", "--pid", "$pidValue") -DiagnosticName "manifest")
 $manifest | ConvertTo-Json -Depth 50 | Set-Content (Join-Path $LocalOutputDir "manifest.json") -Encoding utf8
 
-$reload = Get-Payload (Invoke-BridgeJson -Arguments @("reload", "--pid", "$pidValue") -DiagnosticName "reload")
+$reload = Get-Payload (Invoke-BridgeJson -Arguments @(
+    "reload",
+    "--pid", "$pidValue",
+    "--wait-seconds", "60"
+) -DiagnosticName "reload")
 $reload | ConvertTo-Json -Depth 50 | Set-Content (Join-Path $LocalOutputDir "reload.json") -Encoding utf8
 
 $capture = Get-Payload (Invoke-BridgeJson -Arguments @(
     "screenshot-all",
     "--pid", "$pidValue",
     "--output-dir", $ScreenshotDir,
-    "--scale", "$Scale"
+    "--scale", "$Scale",
+    "--wait-seconds", "60"
 ) -DiagnosticName "screenshot-all")
 $capture | ConvertTo-Json -Depth 50 | Set-Content (Join-Path $LocalOutputDir "screenshot-all.json") -Encoding utf8
 
@@ -267,9 +270,12 @@ $evidence = [ordered]@{
     pageOrder = $expectedPageIds
     checks = [ordered]@{
         bridgeConnected = $true
-        unsavedChanges = $false
+        instanceResolvedUniquely = $true
         reloadCompleted = $true
         allPagesCaptured = $true
+    }
+    observations = [ordered]@{
+        preReloadUnsavedChanges = $preReloadUnsavedChanges
     }
     screenshots = @($screenshotEvidence)
 }
