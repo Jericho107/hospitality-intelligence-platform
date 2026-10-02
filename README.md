@@ -16,7 +16,7 @@
 
 > **Revenue is growing. Why is controllable operating contribution deteriorating — and where should management act first?**
 
-This repository is being built as a synthetic end-to-end hospitality case study around that question.
+This repository implements a synthetic end-to-end hospitality decision system around that question.
 
 The objective is not to produce another hotel dashboard. It is to connect the operational systems that actually drive performance — **PMS, POS, purchasing/inventory, workforce and budget** — into one governed analytical model capable of explaining **where value is created, where margin leaks and which action should be prioritised**.
 
@@ -24,7 +24,7 @@ The objective is not to produce another hotel dashboard. It is to connect the op
 
 ---
 
-## Current implementation — Phase 9 (Desktop runtime evidence gate)
+## Current implementation
 
 The platform now enforces eight fail-closed evidence boundaries from synthetic source contracts through the governed BI, forecasting and value layers.
 
@@ -84,7 +84,7 @@ The platform now enforces eight fail-closed evidence boundaries from synthetic s
 - production forecast validation on real booking-pace and exogenous demand data;
 - observed post-action intervention impact and causal attribution.
 
-Those items receive **zero scoring credit** until repository evidence exists.
+Those items remain outside the implemented evidence boundary until repository evidence exists.
 ---
 
 ## Business scope
@@ -150,7 +150,7 @@ In `margin_leakage`, the synthetic leisure resort receives controlled pressure d
 
 The construction creates a testable management tension: **topline activity can improve while controllable cost pressure deteriorates**.
 
-This is an engineered synthetic scenario, not a discovered client result. Future diagnostics will only receive credit if they correctly identify the injected drivers and change when the scenario changes.
+This is an engineered synthetic scenario, not a discovered client result. Future diagnostics are accepted only if they correctly identify the injected drivers and change when the scenario changes.
 
 ---
 
@@ -424,9 +424,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\capture_powerbi_runtime_evide
 
 ---
 
-## Proof standard
+## Validation standard
 
-This flagship follows the Pretoria BI evidence rule:
+This project follows the Pretoria BI validation rule:
 
 > **No claim receives credit because it appears in a README. It receives credit only when the repository proves it.**
 
@@ -470,15 +470,15 @@ The repository is **not OFFICIAL**.
 
 Current phase: **Phase 9 — Microsoft PBIR validation + reproducible Desktop evidence gate implemented; actual Desktop runtime capture still pending**.
 
-Officialisation requires:
+Release readiness requires:
 
 - implementation of the end-to-end decision system;
 - contradictory technical and commercial review;
 - reverse tests across every material claim;
 - no unsupported business-impact language;
-- final score of **92/100 minimum**.
+- all material claims to remain supported by executable repository evidence.
 
-Internal flagship target: **95+/100 only if the evidence justifies it.**
+The implementation is considered mature only when the remaining runtime and intervention evidence is independently validated.
 
 ---
 
